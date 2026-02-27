@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Agent · Hotel Ter Heide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0B1628;
+  --navy-mid: #132240;
+  --navy-light: #1E3358;
+  --orange: #F25C2A;
+  --orange-glow: rgba(242,92,42,0.15);
+  --cream: #F5F1EB;
+  --text-primary: #EEE8DF;
+  --text-secondary: #7A94B0;
+  --text-muted: #3D5470;
+  --green: #2EC97E;
+  --green-soft: rgba(46,201,126,0.11);
+  --red: #F2645C;
+  --red-soft: rgba(242,100,92,0.11);
+  --amber: #F2B82A;
+  --amber-soft: rgba(242,184,42,0.11);
+  --purple: #9B7FD4;
+  --purple-soft: rgba(155,127,212,0.11);
+  --blue: #4A9EF5;
+  --blue-soft: rgba(74,158,245,0.11);
+  --card: #0F1E38;
+  --card-border: rgba(255,255,255,0.055);
+  --radius: 20px;
+  --radius-sm: 14px;
+  --radius-xs: 9px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:#060E1C;}
+body{display:flex;justify-content:center;align-items:flex-start;font-family:'DM Sans',sans-serif;color:var(--text-primary);}
+.phone{width:390px;min-height:100vh;background:var(--navy);position:relative;display:flex;flex-direction:column;box-shadow:0 0 80px rgba(0,0,0,0.8);}
+
+.statusbar{padding:14px 24px 0;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:var(--text-secondary);flex-shrink:0;}
+
+.topbar{padding:12px 24px 14px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.logo{display:flex;align-items:center;gap:9px;}
+.logo-mark{width:32px;height:32px;background:var(--orange);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;}
+.logo-text{font-family:'Inter',sans-serif;font-size:19px;font-weight:700;color:var(--cream);letter-spacing:-0.5px;}
+.topbar-right{display:flex;gap:10px;align-items:center;}
+.icon-btn{width:40px;height:40px;border-radius:50%;background:var(--card);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:background .2s;}
+.icon-btn:hover{background:var(--navy-light);}
+.notif-badge{position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--orange);border:1.5px solid var(--navy);}
+
+.greeting{padding:4px 24px 24px;flex-shrink:0;}
+.greeting-small{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;}
+.greeting-big{font-family:'Inter',sans-serif;font-size:28px;font-weight:800;color:var(--cream);line-height:1.1;letter-spacing:-0.8px;}
+.greeting-sub{font-size:13px;color:var(--text-secondary);margin-top:5px;}
+.agent-pill{display:inline-flex;align-items:center;gap:7px;margin-top:12px;background:var(--green-soft);border:1px solid rgba(46,201,126,0.18);border-radius:30px;padding:6px 14px;font-size:12px;color:var(--green);font-weight:500;}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.75);}}
+
+.content{flex:1;overflow-y:auto;padding-bottom:90px;}
+.content::-webkit-scrollbar{display:none;}
+
+.sec{padding:0 24px 12px;display:flex;justify-content:space-between;align-items:center;}
+.sec-title{font-family:'Inter',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;color:var(--text-muted);}
+.sec-link{font-size:12px;color:var(--orange);cursor:pointer;font-weight:500;}
+
+/* METRICS */
+.metrics3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;padding:0 24px 24px;}
+.metrics2{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 24px 20px;}
+.mtile{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:16px 13px;}
+.mlabel{font-family:'Inter',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);font-weight:700;margin-bottom:7px;}
+.mval{font-family:'Inter',sans-serif;font-size:22px;font-weight:700;color:var(--cream);letter-spacing:-.5px;}
+.mdelta{font-size:11px;font-weight:500;margin-top:3px;}
+.mtile-lg{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:18px 16px;}
+.mlabel-lg{font-family:'Inter',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);font-weight:700;margin-bottom:8px;}
+.mval-lg{font-family:'Inter',sans-serif;font-size:26px;font-weight:700;color:var(--cream);letter-spacing:-.6px;}
+.mdelta-lg{font-size:12px;font-weight:500;margin-top:4px;}
+.up{color:var(--green);} .dn{color:var(--red);} .nt{color:var(--text-muted);}
+
+/* STACKED ALERTS */
+.alerts-stack{padding:0 24px;display:flex;flex-direction:column;gap:10px;}
+.acard{border-radius:var(--radius);padding:18px;cursor:pointer;transition:transform .15s;}
+.acard:active{transform:scale(.99);}
+.acard.urgent{background:linear-gradient(135deg,#221018,#170B10);border:1px solid rgba(242,100,92,.25);}
+.acard.opport{background:linear-gradient(135deg,#0D201A,#091610);border:1px solid rgba(46,201,126,.2);}
+.acard.info{background:linear-gradient(135deg,#1C1A08,#120F05);border:1px solid rgba(242,184,42,.2);}
+.acard.social{background:linear-gradient(135deg,#180D26,#100820);border:1px solid rgba(155,127,212,.22);}
+.atype{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;margin-bottom:8px;}
+.atype.u{color:var(--red);}.atype.o{color:var(--green);}.atype.i{color:var(--amber);}.atype.s{color:var(--purple);}
+.atitle{font-family:'Inter',sans-serif;font-size:15px;font-weight:700;color:var(--cream);margin-bottom:6px;line-height:1.3;letter-spacing:-.2px;}
+.adesc{font-size:13px;color:var(--text-secondary);line-height:1.55;}
+.abtn-row{display:flex;gap:8px;margin-top:14px;}
+.btn-p{padding:9px 18px;background:var(--orange);color:#fff;border-radius:10px;font-size:13px;font-weight:600;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .15s;}
+.btn-p:hover{opacity:.85;}
+.btn-g{padding:9px 14px;background:transparent;color:var(--text-secondary);border-radius:10px;font-size:13px;font-weight:500;border:1px solid var(--card-border);cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* LOG */
+.loglist{padding:0 24px;display:flex;flex-direction:column;}
+.logitem{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.035);}
+.logico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
+.logico.r{background:var(--orange-glow);}.logico.c{background:var(--green-soft);}.logico.g{background:var(--purple-soft);}.logico.s{background:var(--purple-soft);}.logico.w{background:var(--amber-soft);}
+.logbody{flex:1;}
+.logtxt{font-size:13px;color:var(--text-primary);line-height:1.5;margin-bottom:3px;}
+.logtxt strong{color:var(--cream);font-weight:600;}
+.logmeta{font-size:11px;color:var(--text-muted);}
+.logbadge{padding:4px 9px;border-radius:7px;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;flex-shrink:0;align-self:center;}
+.badge-auto{background:var(--green-soft);color:var(--green);}
+.badge-flag{background:var(--orange-glow);color:var(--orange);}
+.badge-draft{background:var(--purple-soft);color:var(--purple);}
+
+/* REVENUE */
+.rev-anomaly{margin:0 24px 10px;background:var(--card);border:1px solid rgba(242,100,92,.25);border-radius:var(--radius-sm);padding:16px;}
+.rev-anomaly-title{font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--red);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+.rev-anomaly-txt{font-size:13px;color:var(--text-secondary);line-height:1.5;}
+.rev-anomaly-txt strong{color:var(--cream);}
+
+.yoy-card{margin:0 24px 10px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:16px;}
+.yoy-head{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;}
+.yoy-bar-row{display:flex;flex-direction:column;gap:13px;}
+.yoy-label{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-secondary);margin-bottom:5px;}
+.yoy-label-right{display:flex;align-items:center;gap:5px;font-size:12px;}
+.yoy-val-ty{font-weight:700;color:var(--green);}
+.yoy-val-vs{color:var(--text-muted);font-size:11px;}
+.yoy-val-ly{font-weight:600;color:var(--blue);}
+.yoy-pct{font-weight:700;color:var(--green);font-size:11px;}
+.yoy-track{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;position:relative;}
+.yoy-fill-ly{height:100%;border-radius:3px;background:rgba(74,158,245,.35);position:absolute;top:0;left:0;}
+.yoy-fill-ty{height:100%;border-radius:3px;background:var(--orange);position:absolute;top:0;left:0;}
+
+/* CHANNELS */
+.chlist{padding:0 24px;display:flex;flex-direction:column;gap:9px;}
+.chrow{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.chlogo{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;}
+.chlogo.bdc{background:#003580;color:#fff;}
+.chlogo.exp{background:#003580;color:#FEC60D;}
+.chlogo.dir{background:var(--orange-glow);color:var(--orange);}
+.chlogo.air{background:#FF5A5F;color:#fff;font-size:13px;}
+.chlogo.hot{background:rgba(155,127,212,.15);color:var(--purple);}
+.chinfo{flex:1;}
+.chname{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--cream);margin-bottom:3px;}
+.chstat{font-size:12px;color:var(--text-secondary);}
+.chright{text-align:right;}
+.chrev{font-family:'Inter',sans-serif;font-size:15px;font-weight:700;color:var(--cream);}
+.chtag{display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;margin-top:4px;text-transform:uppercase;letter-spacing:.3px;}
+.chtag.on{background:var(--green-soft);color:var(--green);}
+.chtag.off{background:var(--red-soft);color:var(--red);}
+.chtag.opt{background:var(--amber-soft);color:var(--amber);}
+.chtag.sug{background:var(--purple-soft);color:var(--purple);}
+
+/* INSIGHT */
+.insight-row{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);margin:0 24px 10px;}
+.insight-ico{font-size:18px;flex-shrink:0;margin-top:1px;}
+.insight-txt{flex:1;font-size:13px;color:var(--text-secondary);line-height:1.55;}
+.insight-txt strong{color:var(--cream);}
+
+/* REVIEWS */
+.rvlist{padding:0 24px;display:flex;flex-direction:column;gap:10px;}
+.rvcard{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:17px;}
+.rvtop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.rvname{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--cream);}
+.rvsource{font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.rvstars{color:var(--amber);font-size:13px;}
+.rvscore-n{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--cream);}
+.rvtext{font-size:13px;color:var(--text-secondary);line-height:1.55;margin-bottom:12px;font-style:italic;}
+.rvreply{background:rgba(242,92,42,.06);border-radius:var(--radius-xs);padding:11px 13px;border-left:2px solid var(--orange);}
+.rvreply-label{font-size:10px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.rvreply-text{font-size:13px;color:var(--text-primary);line-height:1.55;}
+.rvreply.auto{background:rgba(46,201,126,.06);border-left-color:var(--green);}
+.rvreply-label.auto{color:var(--green);}
+.rvactions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.rv-pill{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--card-border);background:transparent;color:var(--text-secondary);font-family:'DM Sans',sans-serif;transition:all .15s;}
+.rv-pill.primary{background:var(--orange);color:#fff;border-color:var(--orange);}
+.rv-pill:not(.primary):hover{background:var(--navy-light);}
+.rv-pill.primary:hover{opacity:.85;}
+
+/* SOCIAL */
+.soc-list{padding:0 24px;display:flex;flex-direction:column;gap:10px;}
+.soc-card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:17px;}
+.soc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.soc-platform{display:flex;align-items:center;gap:8px;}
+.soc-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.soc-ico.ig{background:linear-gradient(135deg,#833AB4,#FD1D1D,#FCAF45);}
+.soc-ico.fb{background:#1877F2;color:#fff;font-weight:800;font-size:15px;}
+.soc-ico.goo{background:#4285F4;font-size:11px;font-weight:800;color:#fff;}
+.soc-pname{font-family:'Inter',sans-serif;font-size:14px;font-weight:600;color:var(--cream);}
+.soc-badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.soc-badge.ready{background:var(--green-soft);color:var(--green);}
+.soc-badge.draft{background:var(--amber-soft);color:var(--amber);}
+.soc-badge.posted{background:rgba(255,255,255,.05);color:var(--text-muted);}
+.soc-badge.collab{background:var(--purple-soft);color:var(--purple);}
+.soc-img{width:100%;height:110px;border-radius:var(--radius-xs);background:linear-gradient(135deg,#1a2f20,#0d1f15);display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:12px;position:relative;}
+.soc-img-overlay{position:absolute;bottom:9px;left:10px;right:10px;font-size:11px;color:rgba(255,255,255,.65);line-height:1.4;font-style:italic;}
+.soc-caption{font-size:13px;color:var(--text-secondary);line-height:1.55;margin-bottom:12px;}
+.soc-meta{display:flex;justify-content:space-between;align-items:center;}
+.soc-sched{font-size:12px;color:var(--text-muted);}
+.soc-actions{display:flex;gap:7px;}
+
+/* INFLUENCER */
+.inf-card{background:var(--card);border:1px solid rgba(155,127,212,.2);border-radius:var(--radius-sm);padding:17px;}
+.inf-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.inf-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#2a1a3e,#1a0d28);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:2px solid rgba(155,127,212,.3);}
+.inf-info{flex:1;}
+.inf-name{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--cream);}
+.inf-handle{font-size:12px;color:var(--text-muted);}
+.inf-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+.inf-stat{text-align:center;background:rgba(155,127,212,.06);border-radius:8px;padding:8px 4px;}
+.inf-stat-val{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--cream);}
+.inf-stat-label{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.inf-desc{font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:12px;}
+
+/* RESERVATIONS */
+.resv-list{padding:0 24px;display:flex;flex-direction:column;gap:9px;}
+.resv-card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:15px 16px;}
+.resv-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.resv-name{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--cream);}
+.resv-source{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.resv-tag{padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;}
+.resv-tag.checkin{background:var(--green-soft);color:var(--green);}
+.resv-tag.checkout{background:var(--blue-soft);color:var(--blue);}
+.resv-tag.staying{background:rgba(255,255,255,.06);color:var(--text-muted);}
+.resv-tag.pending{background:var(--amber-soft);color:var(--amber);}
+.resv-tag.cancelled{background:var(--red-soft);color:var(--red);}
+.resv-meta{display:flex;gap:12px;flex-wrap:wrap;}
+.resv-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-secondary);}
+.resv-item span{color:var(--cream);font-weight:500;}
+.resv-note{margin-top:9px;padding:9px 12px;background:rgba(242,184,42,.07);border-radius:var(--radius-xs);border-left:2px solid var(--amber);font-size:12px;color:var(--text-secondary);line-height:1.5;}
+.resv-note strong{color:var(--amber);}
+.resv-actions{display:flex;gap:7px;margin-top:10px;}
+
+/* OPS */
+.room-table-wrap{padding:0 24px 20px;}
+.room-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:var(--radius-sm);overflow:hidden;}
+.room-table th{font-family:'Inter',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);font-weight:700;padding:12px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);}
+.room-table td{font-size:13px;color:var(--text-primary);padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.035);}
+.room-table tr:last-child td{border-bottom:none;}
+.rs{padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.rs-clean{background:var(--green-soft);color:var(--green);}
+.rs-dirty{background:var(--red-soft);color:var(--red);}
+.rs-prog{background:var(--amber-soft);color:var(--amber);}
+.rs-check{background:var(--purple-soft);color:var(--purple);}
+.staff-wrap{padding:0 24px 16px;}
+.staff-card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:16px 18px;}
+.staff-list{display:flex;flex-direction:column;gap:14px;}
+.staff-row{display:flex;align-items:center;gap:12px;}
+.staff-avatar{width:36px;height:36px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--text-secondary);flex-shrink:0;}
+.staff-info{flex:1;}
+.staff-name{font-family:'Inter',sans-serif;font-size:13px;color:var(--cream);font-weight:600;}
+.staff-role{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.staff-shift{font-size:13px;color:var(--text-secondary);font-weight:500;}
+.staff-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.sd-on{background:var(--green);}.sd-off{background:var(--text-muted);}.sd-soon{background:var(--amber);}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 190px);}
+.chat-msgs{flex:1;overflow-y:auto;padding:0 24px 12px;display:flex;flex-direction:column;gap:14px;}
+.chat-msgs::-webkit-scrollbar{display:none;}
+.mwrap-a{display:flex;flex-direction:column;align-items:flex-start;}
+.mwrap-u{display:flex;flex-direction:column;align-items:flex-end;}
+.msg{max-width:84%;padding:13px 16px;border-radius:20px;font-size:13px;line-height:1.6;}
+.msg.a{background:var(--card);border:1px solid var(--card-border);color:var(--cream);border-bottom-left-radius:5px;}
+.msg.u{background:var(--orange);color:#fff;border-bottom-right-radius:5px;}
+.mtime{font-size:11px;color:var(--text-muted);margin-top:4px;padding:0 4px;}
+.mtime.r{text-align:right;}
+.typing{display:flex;gap:4px;padding:13px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:20px;border-bottom-left-radius:5px;width:fit-content;}
+.tdot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:tdot 1.2s infinite;}
+.tdot:nth-child(2){animation-delay:.2s;}.tdot:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,60%,100%{opacity:.3;transform:translateY(0);}30%{opacity:1;transform:translateY(-3px);}}
+.inputbar{padding:10px 24px 14px;display:flex;align-items:center;gap:9px;background:rgba(11,22,40,.97);border-top:1px solid rgba(255,255,255,.05);flex-shrink:0;}
+.inputfield{flex:1;background:var(--card);border:1px solid var(--card-border);border-radius:26px;padding:11px 17px;color:var(--cream);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+.inputfield::placeholder{color:var(--text-muted);}
+.inputfield:focus{border-color:var(--orange);}
+.voicebtn{width:46px;height:46px;border-radius:50%;background:var(--card);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.voicebtn:hover,.voicebtn.rec{background:var(--orange);border-color:var(--orange);}
+.voicebtn.rec{animation:vpulse 1s infinite;}
+@keyframes vpulse{0%,100%{box-shadow:0 0 0 0 rgba(242,92,42,.4);}50%{box-shadow:0 0 0 10px rgba(242,92,42,0);}}
+.sendbtn{width:46px;height:46px;border-radius:50%;background:var(--orange);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+
+/* VOICE OVERLAY */
+.voverlay{display:none;position:fixed;bottom:0;width:390px;background:linear-gradient(to top,rgba(11,22,40,.98) 75%,transparent);padding:40px 24px 95px;flex-direction:column;align-items:center;gap:18px;z-index:100;}
+.voverlay.vis{display:flex;}
+.vring{width:84px;height:84px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;}
+.vring::before,.vring::after{content:'';position:absolute;border-radius:50%;border:2px solid var(--orange);animation:vring 2s infinite;}
+.vring::before{width:108px;height:108px;}.vring::after{width:132px;height:132px;animation-delay:.5s;}
+@keyframes vring{0%{opacity:.5;transform:scale(1);}100%{opacity:0;transform:scale(1.2);}}
+.vlabel{font-size:13px;color:var(--text-secondary);}
+.vtranscript{font-family:'Inter',sans-serif;font-size:17px;font-weight:600;color:var(--cream);text-align:center;min-height:28px;letter-spacing:-.3px;}
+.vcancel{font-size:13px;color:var(--text-muted);cursor:pointer;padding:8px 22px;border-radius:20px;border:1px solid var(--card-border);background:transparent;font-family:'DM Sans',sans-serif;}
+
+/* BOTTOM NAV — 6 items */
+.bottomnav{position:fixed;bottom:0;width:390px;background:rgba(11,22,40,.97);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.055);display:flex;padding:8px 0 20px;z-index:50;}
+.navitem{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px 0;}
+.navitem .ni{font-size:18px;transition:transform .15s;}
+.navitem .nl{font-family:'Inter',sans-serif;font-size:9px;font-weight:600;letter-spacing:.2px;color:var(--text-muted);transition:color .15s;}
+.navitem.active .nl{color:var(--orange);}
+.navitem.active .ni{transform:scale(1.1);}
+
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--navy-light);border:1px solid var(--card-border);border-radius:30px;padding:10px 20px;font-size:13px;color:var(--cream);opacity:0;transition:all .3s;z-index:200;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.gap16{height:16px;}.gap24{height:24px;}.gap8{height:8px;}
+.fade-in{animation:fi .35s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:420px){.phone,.bottomnav,.voverlay{width:100%;}}
+</style>
+</head>
+<body>
+<div class="phone" id="app">
+
+  <div class="statusbar">
+    <span>9:41</span>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <svg width="16" height="11" fill="currentColor" viewBox="0 0 16 11"><rect x="0" y="3" width="3" height="8" rx="1" opacity=".35"/><rect x="4.3" y="2" width="3" height="9" rx="1" opacity=".6"/><rect x="8.6" y="0" width="3" height="11" rx="1" opacity=".85"/><rect x="12.9" y="0" width="3" height="11" rx="1"/></svg>
+      <svg width="16" height="11" fill="currentColor" viewBox="0 0 16 11"><path d="M8 2C10.3 2 12.4 3 13.9 4.6L15.2 3.1C13.3 1.2 10.8 0 8 0S2.7 1.2.8 3.1L2.1 4.6C3.6 3 5.7 2 8 2Z" opacity=".4"/><path d="M8 5C9.6 5 11 5.7 12 6.8L13.3 5.3C11.9 3.9 10 3 8 3S4.1 3.9 2.7 5.3L4 6.8C5 5.7 6.4 5 8 5Z" opacity=".7"/><circle cx="8" cy="9.5" r="1.8"/></svg>
+      <svg width="24" height="11" fill="currentColor" viewBox="0 0 24 11"><rect x=".5" y=".5" width="20" height="10" rx="2.5" stroke="currentColor" stroke-width="1" fill="none" opacity=".35"/><rect x="21.5" y="3.5" width="2" height="4" rx="1" opacity=".35"/><rect x="2" y="2" width="14" height="7" rx="1.5" fill="#2EC97E"/></svg>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-mark">⚡</div>
+      <span class="logo-text">Lighthouse</span>
+    </div>
+    <div class="topbar-right">
+      <div class="icon-btn" onclick="showToast('⚙️ Settings')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+      <div class="icon-btn" onclick="switchTab('chat')">
+        <div class="notif-badge"></div>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="greeting">
+    <div class="greeting-small">Wednesday · 25 Feb</div>
+    <div class="greeting-big">Hotel Ter Heide</div>
+    <div class="greeting-sub">Kaprijke · 10 rooms</div>
+    <div class="agent-pill">
+      <div class="pulse"></div>
+      Agent active · 3 actions taken this morning
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════════ TODAY ══════════ -->
+    <div id="tab-today" class="fade-in">
+      <div class="metrics3">
+        <div class="mtile">
+          <div class="mlabel">Occupancy</div>
+          <div class="mval">80%</div>
+          <div class="mdelta up">↑ +6% vs LY</div>
+        </div>
+        <div class="mtile">
+          <div class="mlabel">Rev tonight</div>
+          <div class="mval">€1.2k</div>
+          <div class="mdelta up">↑ +€140</div>
+        </div>
+        <div class="mtile">
+          <div class="mlabel">ADR</div>
+          <div class="mval">€148</div>
+          <div class="mdelta nt">On track</div>
+        </div>
+      </div>
+
+      <div class="sec"><div class="sec-title">Needs your attention</div><div class="sec-link">3 items</div></div>
+      <div class="alerts-stack">
+        <div class="acard urgent">
+          <div class="atype u">🔴 Review</div>
+          <div class="atitle">Negative review on Google</div>
+          <div class="adesc">2-star from last night — guest mentioned noisy pipes in room 2. Agent drafted a reply, ready for your approval.</div>
+          <div class="abtn-row">
+            <button class="btn-p" onclick="switchTab('guests');showToast('📝 Opening review')">See draft</button>
+            <button class="btn-g" onclick="showToast('⏰ Snoozed 1 hour')">Later</button>
+          </div>
+        </div>
+        <div class="acard opport">
+          <div class="atype o">💚 Revenue</div>
+          <div class="atitle">Sun–Tue looking soft</div>
+          <div class="adesc">3 rooms still empty. Agent suggests dropping rate to €89 and opening Hotels.com for those nights.</div>
+          <div class="abtn-row">
+            <button class="btn-p" onclick="switchTab('revenue');showToast('✅ Approved — Agent will act')">Approve</button>
+            <button class="btn-g" onclick="showToast('❌ Dismissed')">Dismiss</button>
+          </div>
+        </div>
+        <div class="acard social">
+          <div class="atype s">✨ Social</div>
+          <div class="atitle">Instagram post ready to schedule</div>
+          <div class="adesc">Spring Market weekend content drafted. One tap to schedule for Thursday 10:00.</div>
+          <div class="abtn-row">
+            <button class="btn-p" onclick="switchTab('guests');showToast('📸 Scheduled for Thu 10:00!')">Schedule</button>
+            <button class="btn-g" onclick="showToast('✏️ Opening editor')">Edit</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="gap24"></div>
+      <div class="sec"><div class="sec-title">What the agent did this morning</div><div class="sec-link" onclick="showToast('📋 Full log')">See all</div></div>
+      <div class="loglist">
+        <div class="logitem">
+          <div class="logico r">💶</div>
+          <div class="logbody">
+            <div class="logtxt">Raised <strong>Fri 27 Feb</strong> from €165 → <strong>€193</strong> — comp set avg now €201</div>
+            <div class="logmeta">07:14 · Pricing</div>
+          </div>
+          <div class="logbadge badge-auto">Auto</div>
+        </div>
+        <div class="logitem">
+          <div class="logico c">📡</div>
+          <div class="logbody">
+            <div class="logtxt">Closed <strong>Expedia</strong> for Sat 28 — hotel now full across all channels</div>
+            <div class="logmeta">07:15 · Channels</div>
+          </div>
+          <div class="logbadge badge-auto">Auto</div>
+        </div>
+        <div class="logitem">
+          <div class="logico g">⭐</div>
+          <div class="logbody">
+            <div class="logtxt">Auto-replied to <strong>9.6★ Booking.com review</strong> from Petra S.</div>
+            <div class="logmeta">08:02 · Reviews</div>
+          </div>
+          <div class="logbadge badge-auto">Auto</div>
+        </div>
+        <div class="logitem">
+          <div class="logico s">📸</div>
+          <div class="logbody">
+            <div class="logtxt">Created <strong>Instagram draft</strong> for Spring Market weekend</div>
+            <div class="logmeta">08:30 · Social</div>
+          </div>
+          <div class="logbadge badge-draft">Draft</div>
+        </div>
+        <div class="logitem">
+          <div class="logico r">💶</div>
+          <div class="logbody">
+            <div class="logtxt">Flagged <strong>Sun–Tue</strong> low fill (30–60%) — awaiting your call</div>
+            <div class="logmeta">08:45 · Revenue</div>
+          </div>
+          <div class="logbadge badge-flag">Flagged</div>
+        </div>
+      </div>
+      <div class="gap24"></div>
+    </div>
+
+    <!-- ══════════ REVENUE ══════════ -->
+    <div id="tab-revenue" style="display:none;" class="fade-in">
+      <div class="metrics2" style="padding-bottom:12px;">
+        <div class="mtile-lg">
+          <div class="mlabel-lg">Revenue this month</div>
+          <div class="mval-lg">€9.8k</div>
+          <div class="mdelta-lg up">↑ +12% vs last year</div>
+        </div>
+        <div class="mtile-lg">
+          <div class="mlabel-lg">ADR</div>
+          <div class="mval-lg">€148</div>
+          <div class="mdelta-lg up">↑ +€11 vs last year</div>
+        </div>
+      </div>
+
+      <div class="sec" style="padding-top:4px;"><div class="sec-title">Pricing anomalies</div></div>
+      <div class="rev-anomaly">
+        <div class="rev-anomaly-title"><span>⚠️</span> Mon–Tue underpriced vs comp set</div>
+        <div class="rev-anomaly-txt">Your weekday rate of <strong>€99</strong> is €18 below the nearest 3 competitors (avg <strong>€117</strong>). Lighthouse suggests raising to €109 — estimated +€200 this month with no occupancy risk.</div>
+        <div class="abtn-row" style="margin-top:12px;">
+          <button class="btn-p" onclick="showToast('✅ Rate updated to €109 Mon–Tue')">Approve €109</button>
+          <button class="btn-g" onclick="showToast('❌ Kept at €99')">Keep current</button>
+        </div>
+      </div>
+
+      <div class="gap16"></div>
+      <div class="sec"><div class="sec-title">vs Last year</div></div>
+      <div class="yoy-card">
+        <div class="yoy-head">Feb 2025 → Feb 2026</div>
+        <div class="yoy-bar-row">
+          <div class="yoy-item">
+            <div class="yoy-label">
+              <span>Revenue</span>
+              <div class="yoy-label-right">
+                <span class="yoy-val-ty">€9.8k</span>
+                <span class="yoy-val-vs">vs</span>
+                <span class="yoy-val-ly">€8.7k</span>
+                <span class="yoy-pct">+12%</span>
+              </div>
+            </div>
+            <div class="yoy-track"><div class="yoy-fill-ly" style="width:80%;"></div><div class="yoy-fill-ty" style="width:90%;"></div></div>
+          </div>
+          <div class="yoy-item">
+            <div class="yoy-label">
+              <span>ADR</span>
+              <div class="yoy-label-right">
+                <span class="yoy-val-ty">€148</span>
+                <span class="yoy-val-vs">vs</span>
+                <span class="yoy-val-ly">€137</span>
+                <span class="yoy-pct">+8%</span>
+              </div>
+            </div>
+            <div class="yoy-track"><div class="yoy-fill-ly" style="width:68%;"></div><div class="yoy-fill-ty" style="width:76%;"></div></div>
+          </div>
+          <div class="yoy-item">
+            <div class="yoy-label">
+              <span>Occupancy</span>
+              <div class="yoy-label-right">
+                <span class="yoy-val-ty">80%</span>
+                <span class="yoy-val-vs">vs</span>
+                <span class="yoy-val-ly">74%</span>
+                <span class="yoy-pct">+6pt</span>
+              </div>
+            </div>
+            <div class="yoy-track"><div class="yoy-fill-ly" style="width:74%;"></div><div class="yoy-fill-ty" style="width:80%;"></div></div>
+          </div>
+          <div class="yoy-item">
+            <div class="yoy-label">
+              <span>Direct bookings</span>
+              <div class="yoy-label-right">
+                <span class="yoy-val-ty">26%</span>
+                <span class="yoy-val-vs">vs</span>
+                <span class="yoy-val-ly">18%</span>
+                <span class="yoy-pct">+8pt</span>
+              </div>
+            </div>
+            <div class="yoy-track"><div class="yoy-fill-ly" style="width:18%;"></div><div class="yoy-fill-ty" style="width:26%;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gap24"></div>
+      <div class="sec"><div class="sec-title">Channels</div><div class="sec-link" onclick="showToast('⚙️ Manage channels')">Manage</div></div>
+      <div class="chlist">
+        <div class="chrow">
+          <div class="chlogo bdc">B.</div>
+          <div class="chinfo"><div class="chname">Booking.com</div><div class="chstat">11 bookings · 63% of OTA revenue</div></div>
+          <div class="chright"><div class="chrev">€6.2k</div><div class="chtag on">Active</div></div>
+        </div>
+        <div class="chrow">
+          <div class="chlogo exp" style="font-size:9px;font-weight:900;color:#FEC60D;">EXP</div>
+          <div class="chinfo"><div class="chname">Expedia</div><div class="chstat">Sat allocation closed by agent</div></div>
+          <div class="chright"><div class="chrev">€1.4k</div><div class="chtag opt">Optimised</div></div>
+        </div>
+        <div class="chrow">
+          <div class="chlogo air">✦</div>
+          <div class="chinfo"><div class="chname">Airbnb</div><div class="chstat">2 bookings · Paused mid-season</div></div>
+          <div class="chright"><div class="chrev">€0.9k</div><div class="chtag off">Paused</div></div>
+        </div>
+        <div class="chrow">
+          <div class="chlogo dir">⚡</div>
+          <div class="chinfo"><div class="chname">Direct</div><div class="chstat">4 bookings · 0% commission</div></div>
+          <div class="chright"><div class="chrev">€2.2k</div><div class="chtag on">Active</div></div>
+        </div>
+        <div class="chrow" style="border-color:rgba(155,127,212,.2);">
+          <div class="chlogo hot">H</div>
+          <div class="chinfo"><div class="chname">Hotels.com</div><div class="chstat">Not connected · Recommended by agent</div></div>
+          <div class="chright"><div class="chrev">—</div><div class="chtag sug">Suggested</div></div>
+        </div>
+      </div>
+      <div class="gap16"></div>
+      <div style="padding:0 24px;">
+        <button class="btn-p" style="width:100%;padding:13px;border-radius:12px;font-size:14px;" onclick="showToast('🔗 Connecting Hotels.com...')">Connect Hotels.com</button>
+      </div>
+      <div class="gap24"></div>
+    </div>
+
+    <!-- ══════════ GUESTS ══════════ -->
+    <div id="tab-guests" style="display:none;" class="fade-in">
+      <div class="metrics2" style="padding-bottom:20px;">
+        <div class="mtile-lg"><div class="mlabel-lg">Avg score</div><div class="mval-lg">8.7</div><div class="mdelta-lg up">↑ +0.2 this month</div></div>
+        <div class="mtile-lg"><div class="mlabel-lg">Reply rate</div><div class="mval-lg">96%</div><div class="mdelta-lg up">↑ Excellent</div></div>
+      </div>
+
+      <div class="sec"><div class="sec-title">Reviews</div><div class="sec-link" onclick="showToast('⭐ All reviews')">All reviews</div></div>
+      <div class="rvlist">
+
+        <!-- Tricky mixed sentiment — needs approval -->
+        <div class="rvcard" style="border-color:rgba(242,184,42,.25);">
+          <div class="rvtop">
+            <div>
+              <div class="rvname">Sofie V.</div>
+              <div class="rvsource" style="color:var(--amber);">⚠️ Tricky sentiment · Google</div>
+            </div>
+            <div style="text-align:right;"><div class="rvstars">★★★</div><div class="rvscore-n">3.0</div></div>
+          </div>
+          <div class="rvtext">"The room was clean and the breakfast delicious, but we felt the price was too high for what you get. Staff was friendly though. Not sure if we'd return at this price point."</div>
+          <div class="rvreply">
+            <div class="rvreply-label">✍️ Agent draft — mixed signals, needs your tone</div>
+            <div class="rvreply-text">Dear Sofie, thank you for taking the time to share your experience. We're so pleased the breakfast and cleanliness hit the mark — and our team will love hearing your kind words! We understand value is important and we'd love the chance to show you more of what makes Ter Heide special. We hope to welcome you back. Warm regards, Mathias</div>
+          </div>
+          <div class="rvactions">
+            <button class="rv-pill primary" onclick="showToast('✅ Reply posted to Google!')">Post reply</button>
+            <button class="rv-pill" onclick="showToast('✏️ Edit mode')">Edit</button>
+          </div>
+        </div>
+
+        <!-- Negative — needs reply -->
+        <div class="rvcard" style="border-color:rgba(242,100,92,.22);">
+          <div class="rvtop">
+            <div>
+              <div class="rvname">Michael B.</div>
+              <div class="rvsource" style="color:var(--red);">🔴 Needs reply · Google</div>
+            </div>
+            <div style="text-align:right;"><div class="rvstars">★★</div><div class="rvscore-n">2.0</div></div>
+          </div>
+          <div class="rvtext">"Nice location but the pipes in room 2 made noise all night. Couldn't sleep. Breakfast was good though."</div>
+          <div class="rvreply">
+            <div class="rvreply-label">✍️ Agent draft — awaiting approval</div>
+            <div class="rvreply-text">Dear Michael, thank you for your honest feedback. We sincerely apologise for the disruption — we've already asked maintenance to look at room 2 this week. We're glad breakfast hit the spot and hope to welcome you back to show you what Ter Heide is really like. Warm regards, Team Ter Heide</div>
+          </div>
+          <div class="rvactions">
+            <button class="rv-pill primary" onclick="showToast('✅ Reply posted to Google!')">Post reply</button>
+            <button class="rv-pill" onclick="showToast('✏️ Edit mode')">Edit</button>
+            <button class="rv-pill" onclick="showToast('🔧 Maintenance task created')">Create task</button>
+          </div>
+        </div>
+
+        <!-- Auto-replied -->
+        <div class="rvcard" style="opacity:.75;">
+          <div class="rvtop">
+            <div>
+              <div class="rvname">Petra S.</div>
+              <div class="rvsource" style="color:var(--green);">✓ Auto-replied · Booking.com</div>
+            </div>
+            <div style="text-align:right;"><div class="rvstars">★★★★★</div><div class="rvscore-n">9.6</div></div>
+          </div>
+          <div class="rvtext">"Absolute gem. Homemade jams and fresh bread every morning. The owner was incredibly helpful with local tips."</div>
+          <div class="rvreply auto">
+            <div class="rvreply-label auto">✓ Agent auto-replied · 08:02 this morning</div>
+            <div class="rvreply-text">Petra, what a wonderful review — thank you so much! Hearing that the little details made your stay special means the world to us. À bientôt! 🌿</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gap24"></div>
+
+      <div class="sec"><div class="sec-title">Social Media</div><div class="sec-link" onclick="showToast('📱 Content calendar')">Calendar</div></div>
+      <div class="soc-list">
+        <div class="soc-card" style="border-color:rgba(155,127,212,.22);">
+          <div class="soc-top">
+            <div class="soc-platform"><div class="soc-ico ig">📸</div><span class="soc-pname">Instagram</span></div>
+            <span class="soc-badge ready">Ready to post</span>
+          </div>
+          <div class="soc-img">
+            🌿
+            <div class="soc-img-overlay">"Morning light in the Ter Heide garden, as spring arrives in Kaprijke…"</div>
+          </div>
+          <div class="soc-caption">Lente is in de lucht 🌸 Spring is coming to Kaprijke — and there's no better way to enjoy it than from our garden terrace. Book via the link in bio. #HotelTerHeide #Kaprijke #EastFlanders</div>
+          <div class="soc-meta">
+            <span class="soc-sched">📅 Thu 26 Feb · 10:00</span>
+            <div class="soc-actions">
+              <button class="rv-pill primary" onclick="showToast('📲 Scheduled for Thu 10:00!')">Schedule</button>
+              <button class="rv-pill" onclick="showToast('✏️ Edit post')">Edit</button>
+            </div>
+          </div>
+        </div>
+        <div class="soc-card">
+          <div class="soc-top">
+            <div class="soc-platform"><div class="soc-ico fb">f</div><span class="soc-pname">Facebook</span></div>
+            <span class="soc-badge draft">In progress</span>
+          </div>
+          <div class="soc-caption" style="margin-bottom:0;">Agent is preparing a March availability post. Ready for your review tomorrow morning.</div>
+        </div>
+        <div class="soc-card" style="opacity:.65;">
+          <div class="soc-top">
+            <div class="soc-platform"><div class="soc-ico goo">G</div><span class="soc-pname">Google Business</span></div>
+            <span class="soc-badge posted">Posted Mon</span>
+          </div>
+          <div class="soc-caption" style="margin-bottom:0;">"A spring escape in Kaprijke — cosy rooms from €148 with breakfast." · 42 views · 3 click-throughs</div>
+        </div>
+      </div>
+
+      <div class="gap24"></div>
+      <div class="sec"><div class="sec-title">Influencer collaborations</div><div class="sec-link" onclick="showToast('🤝 All partnerships')">Manage</div></div>
+      <div class="soc-list">
+        <div class="inf-card">
+          <div class="inf-top">
+            <div class="inf-avatar">🌸</div>
+            <div class="inf-info"><div class="inf-name">Lien Desmet</div><div class="inf-handle">@lien.reist · Travel & Lifestyle</div></div>
+            <span class="soc-badge collab">Confirmed</span>
+          </div>
+          <div class="inf-stats">
+            <div class="inf-stat"><div class="inf-stat-val">42K</div><div class="inf-stat-label">Followers</div></div>
+            <div class="inf-stat"><div class="inf-stat-val">4.8%</div><div class="inf-stat-label">Engagement</div></div>
+            <div class="inf-stat"><div class="inf-stat-val">Mar 8</div><div class="inf-stat-label">Stay date</div></div>
+          </div>
+          <div class="inf-desc">Complimentary 2-night stay in exchange for 2 Instagram posts + story series. Agent drafted a welcome note and room preference checklist.</div>
+          <div class="rvactions">
+            <button class="rv-pill primary" onclick="showToast('📋 Brief sent to Lien!')">Send brief</button>
+            <button class="rv-pill" onclick="showToast('💬 Opening message')">Message</button>
+          </div>
+        </div>
+        <div class="inf-card" style="border-color:rgba(242,184,42,.2);">
+          <div class="inf-top">
+            <div class="inf-avatar">🎒</div>
+            <div class="inf-info"><div class="inf-name">Thomas Claes</div><div class="inf-handle">@thomasontour · Weekend escapes</div></div>
+            <span class="soc-badge draft">Suggested</span>
+          </div>
+          <div class="inf-stats">
+            <div class="inf-stat"><div class="inf-stat-val">28K</div><div class="inf-stat-label">Followers</div></div>
+            <div class="inf-stat"><div class="inf-stat-val">6.1%</div><div class="inf-stat-label">Engagement</div></div>
+            <div class="inf-stat"><div class="inf-stat-val">🇧🇪</div><div class="inf-stat-label">Belgium</div></div>
+          </div>
+          <div class="inf-desc">Agent identified this profile as a strong match — Belgian audience, high engagement, frequently covers Ghent area boutique stays.</div>
+          <div class="rvactions">
+            <button class="rv-pill primary" onclick="showToast('📩 Outreach draft ready!')">Draft outreach</button>
+            <button class="rv-pill" onclick="showToast('👀 Opening profile')">View profile</button>
+          </div>
+        </div>
+      </div>
+      <div class="gap24"></div>
+    </div>
+
+    <!-- ══════════ RESERVATIONS ══════════ -->
+    <div id="tab-reservations" style="display:none;" class="fade-in">
+      <div class="metrics3">
+        <div class="mtile">
+          <div class="mlabel">Arriving</div>
+          <div class="mval">3</div>
+          <div class="mdelta nt">Today</div>
+        </div>
+        <div class="mtile">
+          <div class="mlabel">Departing</div>
+          <div class="mval">2</div>
+          <div class="mdelta nt">By noon</div>
+        </div>
+        <div class="mtile">
+          <div class="mlabel">This month</div>
+          <div class="mval">47</div>
+          <div class="mdelta up">↑ +9 vs LY</div>
+        </div>
+      </div>
+
+      <div class="insight-row">
+        <div class="insight-ico">📋</div>
+        <div class="insight-txt"><strong>Agent note:</strong> 2 pending enquiries haven't received a quote yet (over 4 hours). Responding within 1 hour improves conversion by ~40%.</div>
+      </div>
+
+      <div class="gap8"></div>
+      <div class="sec"><div class="sec-title">Today's arrivals & departures</div><div class="sec-link" onclick="showToast('📅 Full calendar')">Full view</div></div>
+      <div class="resv-list">
+
+        <div class="resv-card">
+          <div class="resv-top">
+            <div><div class="resv-name">Van den Berg family</div><div class="resv-source">Booking.com · Room 3 (Deluxe)</div></div>
+            <span class="resv-tag checkin">Check-in</span>
+          </div>
+          <div class="resv-meta">
+            <div class="resv-item">🕑 <span>14:00</span></div>
+            <div class="resv-item">🌙 <span>3 nights</span></div>
+            <div class="resv-item">👥 <span>2 adults</span></div>
+            <div class="resv-item">💶 <span>€444</span></div>
+          </div>
+          <div class="resv-note"><strong>Note from guest:</strong> Celebrating anniversary — would appreciate a quiet room and early check-in if possible.</div>
+          <div class="resv-actions">
+            <button class="rv-pill primary" onclick="showToast('✅ Early check-in confirmed!')">Confirm early check-in</button>
+            <button class="rv-pill" onclick="showToast('💬 Message sent to guest')">Message</button>
+          </div>
+        </div>
+
+        <div class="resv-card">
+          <div class="resv-top">
+            <div><div class="resv-name">Jonas Willems</div><div class="resv-source">Direct · Room 7 (Standard)</div></div>
+            <span class="resv-tag checkin">Check-in</span>
+          </div>
+          <div class="resv-meta">
+            <div class="resv-item">🕑 <span>15:00</span></div>
+            <div class="resv-item">🌙 <span>1 night</span></div>
+            <div class="resv-item">👤 <span>1 adult</span></div>
+            <div class="resv-item">💶 <span>€148</span></div>
+          </div>
+          <div class="resv-actions" style="margin-top:10px;">
+            <button class="rv-pill" onclick="showToast('💬 Message sent')">Message</button>
+            <button class="rv-pill" onclick="showToast('📋 Guest profile')">View profile</button>
+          </div>
+        </div>
+
+        <div class="resv-card" style="border-color:rgba(242,100,92,.2);">
+          <div class="resv-top">
+            <div><div class="resv-name">Marie Declercq</div><div class="resv-source">Airbnb · Room 5 (Superior)</div></div>
+            <span class="resv-tag checkout">Check-out</span>
+          </div>
+          <div class="resv-meta">
+            <div class="resv-item">🕙 <span>10:00</span></div>
+            <div class="resv-item">🌙 <span>2 nights stayed</span></div>
+            <div class="resv-item">💶 <span>€310 received</span></div>
+          </div>
+          <div class="resv-actions" style="margin-top:10px;">
+            <button class="rv-pill primary" onclick="showToast('✅ Check-out confirmed')">Confirm check-out</button>
+            <button class="rv-pill" onclick="showToast('💬 Thank you message sent!')">Send thank you</button>
+          </div>
+        </div>
+
+        <div class="resv-card" style="border-color:rgba(242,184,42,.22);">
+          <div class="resv-top">
+            <div><div class="resv-name">Enquiry — Peeters</div><div class="resv-source">Via website · 2 adults · Mar 14–16</div></div>
+            <span class="resv-tag pending">Pending</span>
+          </div>
+          <div class="resv-meta">
+            <div class="resv-item">🌙 <span>2 nights</span></div>
+            <div class="resv-item">🛏 <span>Deluxe room</span></div>
+            <div class="resv-item">⏳ <span>4h unanswered</span></div>
+          </div>
+          <div class="resv-note"><strong>Agent:</strong> Rate for those dates is €165/night. I can send a quote automatically — want me to?</div>
+          <div class="resv-actions">
+            <button class="rv-pill primary" onclick="showToast('📩 Quote sent to Peeters!')">Send quote</button>
+            <button class="rv-pill" onclick="showToast('✏️ Edit quote')">Customise</button>
+          </div>
+        </div>
+
+        <div class="resv-card" style="opacity:.6;">
+          <div class="resv-top">
+            <div><div class="resv-name">Sven Baert</div><div class="resv-source">Booking.com · Room 1 (Standard)</div></div>
+            <span class="resv-tag staying">Staying</span>
+          </div>
+          <div class="resv-meta">
+            <div class="resv-item">🚪 <span>Departs Fri 27</span></div>
+            <div class="resv-item">🌙 <span>3 of 3 nights</span></div>
+            <div class="resv-item">💶 <span>€444</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="gap24"></div>
+    </div>
+
+    <!-- ══════════ OPERATIONS ══════════ -->
+    <div id="tab-ops" style="display:none;" class="fade-in">
+      <div class="metrics2" style="padding-bottom:16px;">
+        <div class="mtile-lg"><div class="mlabel-lg">Check-ins today</div><div class="mval-lg">3</div><div class="mdelta-lg nt">From 14:00</div></div>
+        <div class="mtile-lg"><div class="mlabel-lg">Staff on shift</div><div class="mval-lg">3/4</div><div class="mdelta-lg up">✓ Covered</div></div>
+      </div>
+
+      <div class="insight-row">
+        <div class="insight-ico">🏠</div>
+        <div class="insight-txt"><strong>Agent:</strong> All check-outs processed. 8 of 10 rooms cleared. Room 4 flagged — guest arrives 14:00. Lisa resumes at 12:30, no delay risk.</div>
+      </div>
+
+      <div class="gap16"></div>
+      <div class="sec"><div class="sec-title">Housekeeping status</div><div class="sec-link" onclick="showToast('🧹 Assign tasks')">Assign</div></div>
+      <div class="room-table-wrap">
+        <table class="room-table">
+          <thead><tr><th>Room</th><th>Type</th><th>Status</th><th style="text-align:right;">Priority</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td style="color:var(--text-muted);">Standard</td><td><span class="rs rs-clean">Clean</span></td><td style="text-align:right;color:var(--text-muted);font-size:12px;">—</td></tr>
+            <tr><td>2</td><td style="color:var(--text-muted);">Standard</td><td><span class="rs rs-clean">Clean</span></td><td style="text-align:right;color:var(--text-muted);font-size:12px;">—</td></tr>
+            <tr><td>3</td><td style="color:var(--text-muted);">Deluxe</td><td><span class="rs rs-prog">In progress</span></td><td style="text-align:right;color:var(--amber);font-size:12px;font-weight:600;">14:00</td></tr>
+            <tr style="background:rgba(242,100,92,.03);"><td><strong>4</strong></td><td style="color:var(--text-muted);">Deluxe</td><td><span class="rs rs-dirty">⚠ Pending</span></td><td style="text-align:right;color:var(--red);font-size:12px;font-weight:700;">13:00!</td></tr>
+            <tr><td>5</td><td style="color:var(--text-muted);">Superior</td><td><span class="rs rs-clean">Clean</span></td><td style="text-align:right;color:var(--text-muted);font-size:12px;">—</td></tr>
+            <tr><td>6</td><td style="color:var(--text-muted);">Standard</td><td><span class="rs rs-check">Check-in</span></td><td style="text-align:right;color:var(--purple);font-size:12px;">15:00</td></tr>
+            <tr><td>7</td><td style="color:var(--text-muted);">Standard</td><td><span class="rs rs-clean">Clean</span></td><td style="text-align:right;color:var(--text-muted);font-size:12px;">—</td></tr>
+            <tr><td>8</td><td style="color:var(--text-muted);">Suite</td><td><span class="rs rs-clean">Clean</span></td><td style="text-align:right;color:var(--text-muted);font-size:12px;">—</td></tr>
+            <tr><td>9</td><td style="color:var(--text-muted);">Standard</td><td><span class="rs rs-clean">Vacant</span></td><td style="text-align:right;color:var(--text-muted);font-size:12px;">—</td></tr>
+            <tr><td>10</td><td style="color:var(--text-muted);">Standard</td><td><span class="rs rs-clean">Clean</span></td><td style="text-align:right;color:var(--text-muted);font-size:12px;">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sec"><div class="sec-title">Today's staff</div><div class="sec-link" onclick="showToast('📋 Full schedule')">Schedule</div></div>
+      <div class="staff-wrap">
+        <div class="staff-card">
+          <div class="staff-list">
+            <div class="staff-row">
+              <div class="staff-avatar">M</div>
+              <div class="staff-info"><div class="staff-name">Mathias (Owner)</div><div class="staff-role">Front desk · Reception</div></div>
+              <div class="staff-shift">08:00–18:00</div>
+              <div class="staff-dot sd-on"></div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-avatar">L</div>
+              <div class="staff-info"><div class="staff-name">Lisa V.</div><div class="staff-role">Housekeeping</div></div>
+              <div class="staff-shift">On break</div>
+              <div class="staff-dot sd-soon"></div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-avatar">J</div>
+              <div class="staff-info"><div class="staff-name">Joris D.</div><div class="staff-role">Breakfast · Bar</div></div>
+              <div class="staff-shift">07:00–14:00</div>
+              <div class="staff-dot sd-on"></div>
+            </div>
+            <div class="staff-row">
+              <div class="staff-avatar">S</div>
+              <div class="staff-info"><div class="staff-name">Sara M.</div><div class="staff-role">Evening reception</div></div>
+              <div class="staff-shift">Starts 15:00</div>
+              <div class="staff-dot sd-off"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-row" style="border-color:rgba(242,184,42,.22);">
+        <div class="insight-ico">📋</div>
+        <div class="insight-txt"><strong>Next week:</strong> Agent detected a staffing gap on Saturday evening — Sara and Joris are both unavailable. Consider confirming a backup. <span style="color:var(--orange);cursor:pointer;font-weight:500;" onclick="showToast('📱 Availability request sent!')">Send availability request →</span></div>
+      </div>
+      <div class="gap24"></div>
+    </div>
+
+    <!-- ══════════ CHAT ══════════ -->
+    <div id="tab-chat" style="display:none;" class="fade-in">
+      <div class="chat-wrap">
+        <div class="chat-msgs" id="chatMsgs">
+          <div class="mwrap-a">
+            <div class="msg a">Good morning, Mathias! 👋 Rates updated for the weekend, Expedia closed on Saturday, and I auto-replied to Petra's lovely review. Two reviews are waiting for your approval. What do you need?</div>
+            <div class="mtime">Agent · 07:15</div>
+          </div>
+          <div class="mwrap-u">
+            <div class="msg u">How did we do last week vs last year?</div>
+            <div class="mtime r">You · 09:38</div>
+          </div>
+          <div class="mwrap-a">
+            <div class="msg a">Last week you hit <strong>€3,840 in revenue</strong> — up <strong>14% vs the same week last year</strong>. ADR was up €11 to €148, occupancy 84%. Direct bookings grew from 18% to 26% of total. 💪</div>
+            <div class="mtime">Agent · 09:38</div>
+          </div>
+          <div class="mwrap-u">
+            <div class="msg u">Write a quick WhatsApp update for the team about today</div>
+            <div class="mtime r">You · 09:41</div>
+          </div>
+          <div class="mwrap-a">
+            <div class="msg a">Here's a draft:<br><br><em>"Good morning team 🌤️ Today: 3 check-ins from 14:00, 2 check-outs done. Room 4 is priority for Lisa — guest arriving at 14:00. Sara, you're on from 15:00. Up 14% vs last year this week — let's keep it going! — Mathias"</em><br><br>Want me to adjust anything?</div>
+            <div class="mtime">Agent · 09:41</div>
+          </div>
+        </div>
+        <div class="inputbar">
+          <input class="inputfield" id="chatInput" type="text" placeholder="Ask the agent anything…" onkeydown="handleChatKey(event)">
+          <div class="voicebtn" id="voiceBtn" onclick="toggleVoice()">
+            <svg width="16" height="16" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+          </div>
+          <div class="sendbtn" onclick="sendChat()">
+            <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+
+  <!-- BOTTOM NAV — 6 tabs -->
+  <div class="bottomnav">
+    <div class="navitem active" id="nav-today" onclick="switchTab('today')"><div class="ni">🏠</div><div class="nl">Today</div></div>
+    <div class="navitem" id="nav-revenue" onclick="switchTab('revenue')"><div class="ni">📈</div><div class="nl">Revenue</div></div>
+    <div class="navitem" id="nav-reservations" onclick="switchTab('reservations')"><div class="ni">🛎</div><div class="nl">Reservations</div></div>
+    <div class="navitem" id="nav-guests" onclick="switchTab('guests')"><div class="ni">⭐</div><div class="nl">Guests</div></div>
+    <div class="navitem" id="nav-ops" onclick="switchTab('ops')"><div class="ni">🏨</div><div class="nl">Ops</div></div>
+    <div class="navitem" id="nav-chat" onclick="switchTab('chat')"><div class="ni">💬</div><div class="nl">Agent</div></div>
+  </div>
+
+  <!-- VOICE OVERLAY -->
+  <div class="voverlay" id="voverlay">
+    <div class="vring" onclick="toggleVoice()">
+      <svg width="28" height="28" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+    </div>
+    <div class="vtranscript" id="vtranscript">Listening…</div>
+    <div class="vlabel">Speak your question</div>
+    <button class="vcancel" onclick="toggleVoice()">Cancel</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const tabs=['today','revenue','reservations','guests','ops','chat'];
+let voiceActive=false,voiceTimer=null;
+const voicePhrases=['How did we do last week?','Is room 4 ready?','Any pending enquiries?','Draft a reply to the Google review','Show me Sunday occupancy','How are we vs last year?','Any arrivals today?'];
+const agentReplies={
+  'last week':'Last week you hit €3,840 — up 14% vs last year. ADR €148, occupancy 84%. Direct bookings grew to 26% of total.',
+  'last year':'February is tracking +12% on revenue, +8% on ADR, +6pt on occupancy vs last year. Direct bookings have grown from 18% to 26% — a strong trend.',
+  'sunday':'Sunday 1 March is at 60% — 4 rooms empty. Your comp set averages €134 vs your €118. Want me to drop to €99 and open Hotels.com for those nights?',
+  'room':'Room 4 is pending — Lisa resumes at 12:30, guest arrives 14:00. Comfortable buffer. I\'ll alert you if anything changes.',
+  'review':'Two reviews need your attention — a mixed 3-star from Sofie and a 2-star from Michael. Petra\'s 5-star was auto-replied this morning. Both drafts are ready to post with one tap.',
+  'enquir':'2 pending enquiries haven\'t received quotes yet — both over 4 hours. One is from Peeters for Mar 14–16, 2 nights Deluxe at €165/night. Want me to send the quote?',
+  'arriv':'3 arrivals today: Van den Berg family at 14:00 (Room 3, anniversary — note about quiet room), Jonas Willems at 15:00 (Room 7), and one more pending confirmation.',
+  'channel':'Active on Booking.com, Expedia, Direct, and Airbnb (paused). Expedia closed for Saturday. Hotels.com not yet connected — I estimate +€600/month.',
+  'influencer':'Lien Desmet is confirmed for March 8 — brief not yet sent. Thomas Claes is a suggested match I found this week. Want me to draft an outreach message?',
+  'default':'Good question! For Hotel Ter Heide right now: revenue up 12% vs last year, strong weekend ahead, 2 unanswered enquiries, and the main opportunity is the slow mid-week period. Want me to dig into any of that?'
+};
+
+function switchTab(t){
+  tabs.forEach(id=>{
+    const el=document.getElementById('tab-'+id);
+    const nav=document.getElementById('nav-'+id);
+    if(el) el.style.display=id===t?'block':'none';
+    if(nav) nav.classList.toggle('active',id===t);
+  });
+  if(t==='chat') setTimeout(()=>{const m=document.getElementById('chatMsgs');if(m)m.scrollTop=m.scrollHeight;},50);
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+function toggleVoice(){
+  voiceActive=!voiceActive;
+  const ov=document.getElementById('voverlay'),btn=document.getElementById('voiceBtn');
+  ov.classList.toggle('vis',voiceActive);btn.classList.toggle('rec',voiceActive);
+  if(voiceActive){
+    switchTab('chat');
+    const tr=document.getElementById('vtranscript');
+    tr.textContent='Listening…';
+    voiceTimer=setTimeout(()=>{
+      tr.textContent='"'+voicePhrases[Math.floor(Math.random()*voicePhrases.length)]+'"';
+      setTimeout(()=>{
+        voiceActive=false;ov.classList.remove('vis');btn.classList.remove('rec');
+        addMessage(tr.textContent.replace(/^"|"$/g,''),'user');showTyping();
+      },1400);
+    },1800);
+  } else clearTimeout(voiceTimer);
+}
+function handleChatKey(e){if(e.key==='Enter')sendChat();}
+function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const txt=inp.value.trim();if(!txt)return;
+  inp.value='';addMessage(txt,'user');showTyping();
+}
+function addMessage(text,role){
+  const msgs=document.getElementById('chatMsgs');
+  const wrap=document.createElement('div');wrap.className=role==='user'?'mwrap-u':'mwrap-a';
+  const time=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const bubble=document.createElement('div');bubble.className='msg '+(role==='user'?'u':'a');bubble.innerHTML=text;
+  const t=document.createElement('div');t.className='mtime'+(role==='user'?' r':'');
+  t.textContent=role==='user'?'You · '+time:'Agent · '+time;
+  wrap.appendChild(bubble);wrap.appendChild(t);msgs.appendChild(wrap);msgs.scrollTop=msgs.scrollHeight;
+}
+function showTyping(){
+  const msgs=document.getElementById('chatMsgs');
+  const wrap=document.createElement('div');wrap.className='mwrap-a';wrap.id='typing-ind';
+  const ty=document.createElement('div');ty.className='typing';
+  ty.innerHTML='<div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>';
+  wrap.appendChild(ty);msgs.appendChild(wrap);msgs.scrollTop=msgs.scrollHeight;
+  setTimeout(()=>{
+    const ind=document.getElementById('typing-ind');if(ind)ind.remove();
+    const last=[...msgs.querySelectorAll('.msg.u')].pop();
+    const ut=last?last.textContent.toLowerCase():'';
+    let reply=agentReplies.default;
+    for(const[k,v]of Object.entries(agentReplies)){if(k!=='default'&&ut.includes(k)){reply=v;break;}}
+    addMessage(reply,'agent');
+  },1000+Math.random()*800);
+}
+switchTab('today');
+</script>
+</body>
+</html>

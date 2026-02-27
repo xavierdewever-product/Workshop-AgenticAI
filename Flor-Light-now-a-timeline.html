@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Light · V2 Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e0b14;
+    --ink2: #1a1525;
+    --ink3: #241e30;
+    --dim: #6b6478;
+    --muted: #9890a4;
+    --text: #cec8d8;
+    --white: #f0ecf8;
+    --purple: #8b5cf6;
+    --purple-light: #a78bfa;
+    --purple-pale: #ddd6fe;
+    --purple-bg: rgba(139,92,246,0.10);
+    --purple-border: rgba(139,92,246,0.22);
+    --amber: #f59e0b;
+    --amber-pale: #fde68a;
+    --amber-bg: rgba(245,158,11,0.08);
+    --amber-border: rgba(245,158,11,0.22);
+    --red: #ef4444;
+    --red-pale: #fecaca;
+    --red-bg: rgba(239,68,68,0.10);
+    --red-border: rgba(239,68,68,0.25);
+    --green: #22c55e;
+    --green-pale: #bbf7d0;
+    --green-bg: rgba(34,197,94,0.08);
+    --green-border: rgba(34,197,94,0.18);
+    --border: rgba(255,255,255,0.07);
+    --surface: rgba(255,255,255,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Layout ── */
+  .shell {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Left rail: year arc ── */
+  .year-rail {
+    width: 72px;
+    background: var(--ink2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    gap: 0;
+    flex-shrink: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .year-rail::-webkit-scrollbar { display: none; }
+
+  .rail-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-bottom: 28px;
+    box-shadow: 0 0 20px rgba(124,58,237,0.4);
+    flex-shrink: 0;
+  }
+
+  .rail-months {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+    width: 100%;
+  }
+
+  .rail-month {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    padding: 6px 0;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .rail-month:hover { background: rgba(255,255,255,0.03); }
+
+  .rail-month-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 4px;
+    transition: color 0.15s;
+  }
+  .rail-month.active .rail-month-label { color: var(--purple-light); }
+  .rail-month.current .rail-month-label { color: var(--white); }
+
+  .rail-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.1);
+    transition: all 0.2s;
+  }
+  .rail-dot.has-event { background: var(--purple); box-shadow: 0 0 6px rgba(139,92,246,0.5); }
+  .rail-dot.has-urgent { background: var(--amber); box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+  .rail-dot.current { background: var(--white); width: 8px; height: 8px; border-radius: 4px; }
+
+  .rail-line {
+    width: 1px;
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    margin: 3px 0;
+    min-height: 16px;
+  }
+  .rail-line.active-segment {
+    background: linear-gradient(to bottom, var(--purple), rgba(139,92,246,0.2));
+  }
+
+  /* ── Middle: conversation ── */
+  .conversation {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+
+  .conv-header {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(12px);
+    flex-shrink: 0;
+  }
+
+  .conv-header-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 0 12px rgba(124,58,237,0.35);
+  }
+
+  .conv-header-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--white);
+  }
+  .conv-header-sub {
+    font-size: 12px;
+    color: var(--purple-light);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 1px;
+  }
+  .pulse {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--purple);
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .pulse::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: var(--purple);
+    opacity: 0.3;
+    animation: ping 1.8s ease infinite;
+  }
+
+  .conv-feed {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+  }
+  .conv-feed::-webkit-scrollbar { width: 3px; }
+  .conv-feed::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+
+  /* ── Date dividers ── */
+  .date-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 22px 16px;
+    opacity: 0.5;
+  }
+  .date-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .date-divider-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dim);
+    white-space: nowrap;
+  }
+
+  /* ── Message bubbles ── */
+  .msg-row {
+    padding: 0 22px 20px;
+    animation: fadeUp 0.35s ease both;
+  }
+
+  .msg-light {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .msg-body { flex: 1; min-width: 0; }
+  .msg-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .msg-sender {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--purple-light);
+  }
+  .msg-time {
+    font-size: 11px;
+    color: var(--dim);
+  }
+
+  /* ── Message card types ── */
+  .msg-card {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  /* Morning brief */
+  .brief-card {
+    border-color: rgba(139,92,246,0.2);
+    background: linear-gradient(160deg, rgba(30,8,60,0.6) 0%, rgba(12,4,28,0.8) 100%);
+  }
+  .brief-header {
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid rgba(139,92,246,0.12);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .brief-icon {
+    font-size: 22px;
+    line-height: 1;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+  .brief-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+  .brief-sub {
+    font-size: 12px;
+    color: var(--purple-light);
+  }
+  .brief-rows {
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .brief-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .brief-row.warn {
+    background: var(--amber-bg);
+    border-color: var(--amber-border);
+    color: var(--amber-pale);
+  }
+  .brief-row-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    flex-shrink: 0;
+  }
+  .brief-row.warn .brief-row-dot { background: var(--amber); }
+  .brief-action {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--purple-light);
+    white-space: nowrap;
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 5px;
+    border: 1px solid var(--purple-border);
+    background: var(--purple-bg);
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .brief-action:hover { background: rgba(139,92,246,0.2); }
+  .brief-footer {
+    padding: 11px 18px;
+    border-top: 1px solid rgba(139,92,246,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brief-stat {
+    text-align: center;
+  }
+  .brief-stat-val {
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .brief-stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--dim);
+  }
+  .brief-stat-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--border);
+  }
+
+  /* Horizon nudge */
+  .horizon-card {
+    border-color: rgba(245,158,11,0.18);
+    background: rgba(245,158,11,0.04);
+    max-width: 440px;
+  }
+  .horizon-inner {
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .horizon-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .horizon-tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .horizon-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .horizon-body {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .horizon-progress {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(245,158,11,0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .horizon-bar {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.07);
+    overflow: hidden;
+  }
+  .horizon-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--amber), #fbbf24);
+    transition: width 1s ease;
+  }
+  .horizon-bar-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--amber);
+    white-space: nowrap;
+  }
+
+  /* Urgent interruption */
+  .urgent-card {
+    border-color: var(--red-border);
+    background: var(--red-bg);
+    position: relative;
+    overflow: hidden;
+  }
+  .urgent-sweep {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red), #ff6b6b, var(--red), transparent);
+    animation: shimmer 2.5s linear infinite;
+    background-size: 200% auto;
+  }
+  .urgent-inner { padding: 16px 18px; }
+  .urgent-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .urgent-blink {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: urgentBlink 1s step-end infinite;
+  }
+  .urgent-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1.25;
+    margin-bottom: 8px;
+  }
+  .urgent-body {
+    font-size: 13px;
+    color: var(--red-pale);
+    line-height: 1.6;
+    margin-bottom: 14px;
+    opacity: 0.9;
+  }
+  .urgent-draft {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .urgent-draft-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .urgent-draft-text {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.65;
+    font-style: italic;
+  }
+  .urgent-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    flex: 1;
+    padding: 11px 14px;
+    border-radius: 9px;
+    border: 1px solid;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    line-height: 1.3;
+  }
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--muted);
+  }
+  .btn-ghost:hover { background: var(--surface); color: var(--text); }
+  .btn-send {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 0 16px rgba(239,68,68,0.3);
+  }
+  .btn-send:hover { filter: brightness(1.12); }
+  .btn-comp {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 0 16px rgba(124,58,237,0.3);
+  }
+  .btn-comp:hover { filter: brightness(1.12); }
+
+  /* Decision confirmed state */
+  .confirmed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 14px;
+    border-radius: 9px;
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green-pale);
+    animation: fadeUp 0.25s ease;
+  }
+
+  /* Simple text message */
+  .msg-text {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px 14px 14px 3px;
+    padding: 12px 15px;
+    max-width: 420px;
+  }
+
+  /* Activity pill */
+  .activity-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--purple-bg);
+    border: 1px solid var(--purple-border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--purple-pale);
+    margin-bottom: 6px;
+  }
+
+  /* ── Input ── */
+  .conv-input {
+    border-top: 1px solid var(--border);
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .conv-input input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 11px 16px;
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .conv-input input:focus { border-color: var(--purple-border); }
+  .conv-input input::placeholder { color: var(--dim); }
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 0 16px rgba(124,58,237,0.35);
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .send-btn:hover { filter: brightness(1.15); }
+
+  /* ── Right panel: year arc detail ── */
+  .arc-panel {
+    width: 300px;
+    background: var(--ink2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .arc-header {
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .arc-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 2px;
+  }
+  .arc-sub {
+    font-size: 11px;
+    color: var(--dim);
+  }
+
+  .arc-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 14px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.06) transparent;
+  }
+
+  .arc-month-group {
+    margin-bottom: 20px;
+  }
+  .arc-month-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .arc-month-label.current-month { color: var(--white); }
+  .arc-month-divider { flex: 1; height: 1px; background: var(--border); }
+
+  .arc-event {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 11px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .arc-event:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
+  .arc-event.current-event {
+    border-color: var(--purple-border);
+    background: var(--purple-bg);
+  }
+  .arc-event.warn-event {
+    border-color: var(--amber-border);
+    background: var(--amber-bg);
+  }
+  .arc-event.done-event {
+    opacity: 0.45;
+  }
+
+  .arc-event-icon {
+    font-size: 15px;
+    line-height: 1;
+    padding-top: 1px;
+    flex-shrink: 0;
+  }
+  .arc-event-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 2px;
+  }
+  .arc-event.current-event .arc-event-title { color: var(--purple-pale); }
+  .arc-event.warn-event .arc-event-title { color: var(--amber-pale); }
+  .arc-event-sub {
+    font-size: 11px;
+    color: var(--dim);
+    line-height: 1.4;
+  }
+  .arc-event-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 6px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .arc-event-badge.working {
+    background: var(--purple-bg);
+    border: 1px solid var(--purple-border);
+    color: var(--purple-light);
+  }
+  .arc-event-badge.needs-you {
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    color: var(--amber);
+  }
+  .arc-event-badge.done {
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    color: var(--green);
+  }
+
+  /* ── Annotations / labels ── */
+  .annotation {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 0 22px;
+    margin-bottom: 10px;
+    margin-top: -8px;
+    opacity: 0.6;
+  }
+
+  /* ── Animations ── */
+  @keyframes ping {
+    75%, 100% { transform: scale(2.2); opacity: 0; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shimmer {
+    from { background-position: -200% center; }
+    to   { background-position: 200% center; }
+  }
+  @keyframes urgentBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── Concept label overlay ── */
+  .concept-label {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 8px 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dim);
+    pointer-events: none;
+    z-index: 100;
+  }
+  .concept-label span { color: var(--purple-light); }
+
+  .view-tabs {
+    display: flex;
+    gap: 2px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 3px;
+    margin-left: auto;
+  }
+  .view-tab {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    color: var(--dim);
+    background: transparent;
+  }
+  .view-tab.active {
+    background: var(--purple);
+    color: white;
+  }
+
+  .tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+  .tag-chip.purple {
+    background: var(--purple-bg);
+    border: 1px solid var(--purple-border);
+    color: var(--purple-light);
+  }
+  .tag-chip.amber {
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    color: var(--amber);
+  }
+  .tag-chip.red {
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+    color: var(--red);
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── Year Rail ── -->
+  <nav class="year-rail" aria-label="Year arc">
+    <div class="rail-logo">✦</div>
+    <div class="rail-months" id="railMonths"></div>
+  </nav>
+
+  <!-- ── Conversation ── -->
+  <main class="conversation">
+    <div class="conv-header">
+      <div class="conv-header-avatar">✦</div>
+      <div>
+        <div class="conv-header-name">Light</div>
+        <div class="conv-header-sub">
+          <span class="pulse"></span>
+          All systems running · Riverside Inn
+        </div>
+      </div>
+      <div style="margin-left: auto; display:flex; align-items:center; gap:10px;">
+        <span style="font-size:10px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:var(--dim); white-space:nowrap;">V2 · Conversation + Year Arc</span>
+        <div class="view-tabs">
+          <button class="view-tab active">Today</button>
+          <button class="view-tab">Thread</button>
+          <button class="view-tab">Archive</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="conv-feed" id="convFeed">
+
+      <!-- ── Moment 1: Morning Brief ── -->
+      <div class="date-divider">
+        <div class="date-divider-line"></div>
+        <div class="date-divider-label">Monday · 23 Feb · 07:14</div>
+        <div class="date-divider-line"></div>
+      </div>
+
+      <div class="msg-row" style="animation-delay: 0.05s">
+        <div class="msg-light">
+          <div class="msg-avatar">✦</div>
+          <div class="msg-body">
+            <div class="msg-meta">
+              <span class="msg-sender">Light</span>
+              <span class="msg-time">07:14</span>
+              <span class="tag-chip purple">Morning brief</span>
+            </div>
+            <div class="msg-card brief-card">
+              <div class="brief-header">
+                <div class="brief-icon">🌅</div>
+                <div>
+                  <div class="brief-title">Good morning, Marcus</div>
+                  <div class="brief-sub">I worked through the night — here's what you need to know</div>
+                </div>
+              </div>
+              <div class="brief-rows">
+                <div class="brief-row">
+                  <div class="brief-row-dot" style="background: var(--green)"></div>
+                  3 new bookings landed overnight — €465 added, no action needed
+                </div>
+                <div class="brief-row">
+                  <div class="brief-row-dot" style="background: var(--green)"></div>
+                  I raised Sunday to €175 — Saturday sold out, demand signal confirmed at 02:14
+                </div>
+                <div class="brief-row warn">
+                  <div class="brief-row-dot"></div>
+                  3 competitors dropped rates overnight — you should see this before you set today's price
+                  <span class="brief-action" onclick="this.textContent='Opening →'">View →</span>
+                </div>
+                <div class="brief-row warn">
+                  <div class="brief-row-dot"></div>
+                  Room 308 pre-auth still open — Booking.com VCC hasn't confirmed
+                  <span class="brief-action" onclick="this.textContent='Retrying →'">Retry →</span>
+                </div>
+              </div>
+              <div class="brief-footer">
+                <div class="brief-stat">
+                  <div class="brief-stat-val">94%</div>
+                  <div class="brief-stat-label">occupancy</div>
+                </div>
+                <div class="brief-stat-divider"></div>
+                <div class="brief-stat">
+                  <div class="brief-stat-val">€2,060</div>
+                  <div class="brief-stat-label">forecast</div>
+                </div>
+                <div class="brief-stat-divider"></div>
+                <div class="brief-stat">
+                  <div class="brief-stat-val">8</div>
+                  <div class="brief-stat-label">overnight actions</div>
+                </div>
+                <div class="brief-stat-divider"></div>
+                <div class="brief-stat">
+                  <div class="brief-stat-val">+8%</div>
+                  <div class="brief-stat-label">vs forecast</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Moment 2: Horizon Nudge ── -->
+      <div class="msg-row" style="animation-delay: 0.15s">
+        <div class="msg-light">
+          <div class="msg-avatar">✦</div>
+          <div class="msg-body">
+            <div class="msg-meta">
+              <span class="msg-sender">Light</span>
+              <span class="msg-time">07:14</span>
+              <span class="tag-chip amber">6 weeks out</span>
+            </div>
+            <div class="msg-card horizon-card">
+              <div class="horizon-inner">
+                <div class="horizon-icon">📄</div>
+                <div style="flex:1">
+                  <div class="horizon-tag">
+                    <span>●</span> Booking.com contract renewal
+                  </div>
+                  <div class="horizon-title">Your contract renews March 31 — I've started pulling your leverage data</div>
+                  <div class="horizon-body">You accepted standard terms last year. This year your numbers are stronger — I'm building a brief so you walk in prepared. You won't need to do anything until I surface it.</div>
+                  <div class="horizon-progress">
+                    <div class="horizon-bar">
+                      <div class="horizon-bar-fill" style="width: 35%"></div>
+                    </div>
+                    <div class="horizon-bar-label">35% ready · surfacing Mar 24</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Marcus reply ── -->
+      <div class="msg-row" style="animation-delay: 0.25s; display:flex; justify-content:flex-end;">
+        <div style="max-width:340px;">
+          <div class="msg-meta" style="justify-content:flex-end; margin-bottom:5px">
+            <span class="msg-time">08:43</span>
+            <span class="msg-sender" style="color:var(--muted)">Marcus</span>
+          </div>
+          <div style="background:rgba(139,92,246,0.14); border:1px solid var(--purple-border); border-radius:14px 14px 3px 14px; padding:11px 14px; font-size:13px; color:var(--purple-pale);">
+            What's the Booking.com situation — should I be worried?
+          </div>
+        </div>
+      </div>
+
+      <div class="msg-row" style="animation-delay: 0.3s">
+        <div class="msg-light">
+          <div class="msg-avatar">✦</div>
+          <div class="msg-body">
+            <div class="msg-meta">
+              <span class="msg-sender">Light</span>
+              <span class="msg-time">08:43</span>
+            </div>
+            <div class="msg-text">
+              Not yet — you have 6 weeks and I'm already on it. Last year you were unprepared and accepted commission terms that cost you ~€4,200 annually. This year I'll have benchmarks, your revenue data, and talking points ready by March 24. I'll surface it as a decision card with everything you need. For now, nothing to do.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Quiet gap indicator ── -->
+      <div class="date-divider" style="opacity: 0.3; padding: 16px 22px;">
+        <div class="date-divider-line"></div>
+        <div class="date-divider-label" style="font-size:9px; letter-spacing:0.1em;">quiet · 09:00 – 14:30 · Light handled everything</div>
+        <div class="date-divider-line"></div>
+      </div>
+
+      <!-- ── Moment 3: Urgent Interruption ── -->
+      <div class="msg-row" style="animation-delay: 0.4s">
+        <div class="msg-light">
+          <div class="msg-avatar">✦</div>
+          <div class="msg-body">
+            <div class="msg-meta">
+              <span class="msg-sender">Light</span>
+              <span class="msg-time">14:38</span>
+              <span class="tag-chip red">⚠ Needs you now</span>
+            </div>
+            <div class="msg-card urgent-card">
+              <div class="urgent-sweep"></div>
+              <div class="urgent-inner">
+                <div class="urgent-label">
+                  <span class="urgent-blink"></span>
+                  I spotted a review risk before it happens
+                </div>
+                <div class="urgent-title">Group B. are going to leave a bad review — unless you act in the next 3 hours</div>
+                <div class="urgent-body">Room 103 wasn't ready at check-in — they waited 40 minutes and missed their dinner reservation. No apology has been given. I've been tracking this group's pattern and they review within 18 hours of checkout. They check out tomorrow at 10:00.</div>
+                <div class="urgent-draft">
+                  <div class="urgent-draft-label">Draft I wrote — sounds like you sent it</div>
+                  <div class="urgent-draft-text">"Hi, I'm Marcus — GM here at Riverside Inn. I wanted to reach out personally. I heard your room wasn't ready when you arrived and that you missed your dinner reservation as a result. That's not okay, and I'm sorry it happened. I'd like to offer you a complimentary late checkout tomorrow at 13:00. Please feel free to call me directly if there's anything I can do tonight."</div>
+                </div>
+                <div id="urgentActions" class="urgent-actions">
+                  <button class="btn btn-ghost" onclick="handleUrgent('skip')">Remind me later</button>
+                  <button class="btn btn-send" onclick="handleUrgent('send')">Send message →</button>
+                  <button class="btn btn-comp" onclick="handleUrgent('comp')">Send + €30 comp →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Spacer ── -->
+      <div style="height: 80px"></div>
+
+    </div><!-- /conv-feed -->
+
+    <div class="conv-input">
+      <div class="conv-header-avatar" style="width:32px;height:32px;font-size:12px;flex-shrink:0;">✦</div>
+      <input type="text" placeholder="Ask Light anything, or just keep going with your day…" id="chatInput" onkeydown="if(event.key==='Enter')sendMsg()"/>
+      <button class="send-btn" onclick="sendMsg()">➤</button>
+    </div>
+  </main>
+
+  <!-- ── Arc Panel ── -->
+  <aside class="arc-panel">
+    <div class="arc-header">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+        <div class="arc-title">Year arc</div>
+        <div class="tag-chip purple" style="margin-left:auto;">6 in progress</div>
+      </div>
+      <div class="arc-sub">What Light is working on — before you need to ask</div>
+    </div>
+    <div class="arc-scroll" id="arcScroll"></div>
+  </aside>
+
+</div><!-- /shell -->
+
+<script>
+// ── Rail months ──────────────────────────────────────────────────────────────
+const months = [
+  { label:"Jan", dot:"done",   events:2 },
+  { label:"Feb", dot:"current",events:3 },
+  { label:"Mar", dot:"urgent", events:4 },
+  { label:"Apr", dot:"event",  events:2 },
+  { label:"May", dot:"event",  events:3 },
+  { label:"Jun", dot:"",       events:1 },
+  { label:"Jul", dot:"",       events:1 },
+  { label:"Aug", dot:"",       events:0 },
+  { label:"Sep", dot:"event",  events:2 },
+  { label:"Oct", dot:"event",  events:3 },
+  { label:"Nov", dot:"",       events:1 },
+  { label:"Dec", dot:"",       events:1 },
+];
+
+const rail = document.getElementById("railMonths");
+months.forEach((m, i) => {
+  const isCurrent = m.label === "Feb";
+  const isPast    = i < 1;
+
+  if (i > 0) {
+    const line = document.createElement("div");
+    line.className = "rail-line" + (i <= 1 ? " active-segment" : "");
+    rail.appendChild(line);
+  }
+
+  const month = document.createElement("div");
+  month.className = "rail-month" + (isCurrent ? " current" : "") + (isPast ? " past" : "");
+  month.innerHTML = `
+    <div class="rail-month-label">${m.label}</div>
+    <div class="rail-dot ${
+      isCurrent ? "current" :
+      m.dot === "done" ? "" :
+      m.dot === "urgent" ? "has-urgent" :
+      m.dot === "event" ? "has-event" : ""
+    }"></div>
+  `;
+  rail.appendChild(month);
+});
+
+// ── Arc panel data ───────────────────────────────────────────────────────────
+const arcData = [
+  {
+    month: "February 2026", current: true,
+    events: [
+      { icon:"📄", title:"Booking.com contract renewal", sub:"35% of brief ready — surfacing Mar 24", badge:"working", type:"warn" },
+      { icon:"🏙️", title:"City Marathon pricing · Mar 21–23", sub:"Rates set to €185 — synced to all channels", badge:"done", type:"done" },
+    ]
+  },
+  {
+    month: "March 2026",
+    events: [
+      { icon:"❄️", title:"Slow period starts March 10", sub:"Locals offer draft in progress — surfacing Wed", badge:"working", type:"warn" },
+      { icon:"📄", title:"Booking.com renewal call · Mar 31", sub:"Negotiation brief building — you'll need 45 min", badge:"working", type:"warn" },
+      { icon:"🎪", title:"Galway Spring Festival · Mar 21–23", sub:"I already raised rates to €195 — you're ahead of 5 competitors", badge:"done", type:"done" },
+    ]
+  },
+  {
+    month: "April 2026",
+    events: [
+      { icon:"🌷", title:"Easter · Apr 5–8", sub:"34% booked. I'm moving rates now — watching booking curve", badge:"working", type:"" },
+      { icon:"☀️", title:"May bank holiday prep", sub:"Starts in 6 weeks — rate strategy ready", badge:"working", type:"" },
+    ]
+  },
+  {
+    month: "May 2026",
+    events: [
+      { icon:"📊", title:"Mid-year owner review", sub:"I'll build the pack in April — you won't need to prep", badge:"working", type:"" },
+    ]
+  },
+];
+
+const arcScroll = document.getElementById("arcScroll");
+arcData.forEach(group => {
+  const grp = document.createElement("div");
+  grp.className = "arc-month-group";
+  grp.innerHTML = `
+    <div class="arc-month-label ${group.current ? "current-month" : ""}">
+      ${group.month}
+      <div class="arc-month-divider"></div>
+    </div>
+  `;
+  group.events.forEach(evt => {
+    const el = document.createElement("div");
+    el.className = "arc-event" + 
+      (evt.type === "warn" ? " warn-event" : "") +
+      (evt.type === "done" ? " done-event" : "");
+    const badgeHtml = evt.badge ? `<div class="arc-event-badge ${evt.badge}">${evt.badge === "working" ? "✦ working" : evt.badge === "needs-you" ? "needs you" : "✓ done"}</div>` : "";
+    el.innerHTML = `
+      <div class="arc-event-icon">${evt.icon}</div>
+      <div style="flex:1; min-width:0;">
+        <div class="arc-event-title">${evt.title}</div>
+        <div class="arc-event-sub">${evt.sub}</div>
+        ${badgeHtml}
+      </div>
+    `;
+    grp.appendChild(el);
+  });
+  arcScroll.appendChild(grp);
+});
+
+// ── Urgent actions ───────────────────────────────────────────────────────────
+function handleUrgent(choice) {
+  const el = document.getElementById("urgentActions");
+  const msgs = {
+    skip: "I'll remind you at 08:00 — before their checkout ✓",
+    send: "Message sent to Group B. — good call, Marcus ✓",
+    comp: "Message sent with €30 credit — this will land well ✓",
+  };
+  el.innerHTML = `<div class="confirmed">✓ ${msgs[choice]}</div>`;
+}
+
+// ── Simple chat ──────────────────────────────────────────────────────────────
+const replies = [
+  "On it. Let me pull that together and come back with only what matters.",
+  "Already watching that. I'll flag it the moment anything shifts.",
+  "I've been tracking this. Here's what I know — and what I'd do.",
+  "Good question. Give me a moment to check across all 6 channels.",
+  "You don't need to worry about this one yet. I'll surface it when you do.",
+];
+
+function sendMsg() {
+  const input = document.getElementById("chatInput");
+  const val = input.value.trim();
+  if (!val) return;
+  input.value = "";
+
+  const feed = document.getElementById("convFeed");
+
+  // User message
+  const userRow = document.createElement("div");
+  userRow.className = "msg-row";
+  userRow.style.display = "flex";
+  userRow.style.justifyContent = "flex-end";
+  userRow.innerHTML = `
+    <div style="max-width:340px;">
+      <div class="msg-meta" style="justify-content:flex-end; margin-bottom:5px">
+        <span class="msg-time">${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</span>
+        <span class="msg-sender" style="color:var(--muted)">Marcus</span>
+      </div>
+      <div style="background:rgba(139,92,246,0.14); border:1px solid var(--purple-border); border-radius:14px 14px 3px 14px; padding:11px 14px; font-size:13px; color:var(--purple-pale);">${val}</div>
+    </div>
+  `;
+  feed.insertBefore(userRow, feed.lastElementChild);
+
+  // Light reply
+  setTimeout(() => {
+    const replyRow = document.createElement("div");
+    replyRow.className = "msg-row";
+    const reply = replies[Math.floor(Math.random() * replies.length)];
+    replyRow.innerHTML = `
+      <div class="msg-light">
+        <div class="msg-avatar">✦</div>
+        <div class="msg-body">
+          <div class="msg-meta">
+            <span class="msg-sender">Light</span>
+            <span class="msg-time">${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</span>
+          </div>
+          <div class="msg-text">${reply}</div>
+        </div>
+      </div>
+    `;
+    feed.insertBefore(replyRow, feed.lastElementChild);
+    feed.scrollTop = feed.scrollHeight;
+  }, 800);
+
+  feed.scrollTop = feed.scrollHeight;
+}
+
+// ── Scroll feed to show urgent card ─────────────────────────────────────────
+setTimeout(() => {
+  const feed = document.getElementById("convFeed");
+  feed.scrollTop = feed.scrollHeight;
+}, 200);
+</script>
+</body>
+</html>

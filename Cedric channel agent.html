@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lighthouse — Channel Agent Prototype</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js" rel="prefetch">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f9fafb; color: #111827; -webkit-font-smoothing: antialiased; }
+  
+  /* Utility classes */
+  .flex { display: flex; } .flex-col { flex-direction: column; } .items-center { align-items: center; } .items-start { align-items: flex-start; }
+  .justify-between { justify-content: space-between; } .justify-center { justify-content: center; }
+  .gap-1 { gap: 4px; } .gap-1-5 { gap: 6px; } .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; }
+  .flex-1 { flex: 1; } .flex-shrink-0 { flex-shrink: 0; } .flex-wrap { flex-wrap: wrap; }
+  .min-w-0 { min-width: 0; } .w-full { width: 100%; } .h-full { height: 100%; }
+  .overflow-hidden { overflow: hidden; } .overflow-y-auto { overflow-y: auto; }
+  .relative { position: relative; } .absolute { position: absolute; } .fixed { position: fixed; }
+  .inset-0 { top:0;right:0;bottom:0;left:0; }
+  .truncate { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .text-left { text-align: left; } .text-center { text-align: center; } .text-right { text-align: right; }
+  .font-medium { font-weight: 500; } .font-semibold { font-weight: 600; } .font-bold { font-weight: 700; }
+  .text-xs { font-size: 12px; line-height: 16px; } .text-sm { font-size: 14px; line-height: 20px; } .text-base { font-size: 16px; line-height: 24px; }
+  .leading-snug { line-height: 1.375; } .leading-relaxed { line-height: 1.625; }
+  .rounded { border-radius: 4px; } .rounded-md { border-radius: 6px; } .rounded-lg { border-radius: 8px; } .rounded-full { border-radius: 9999px; }
+  .border { border: 1px solid; } .border-b { border-bottom: 1px solid; } .border-t { border-top: 1px solid; } .border-l { border-left: 1px solid; }
+  .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,.05); } .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1); }
+  .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); }
+  .cursor-pointer { cursor: pointer; } .select-none { user-select: none; }
+  .transition { transition: all 150ms ease; }
+  .italic { font-style: italic; }
+  .font-mono { font-family: ui-monospace, SFMono-Regular, monospace; }
+  .inline { display: inline; } .inline-flex { display: inline-flex; }
+  .self-center { align-self: center; }
+  .ml-auto { margin-left: auto; }
+  
+  /* Colors */
+  .bg-white { background: #fff; } .bg-gray-50 { background: #f9fafb; } .bg-gray-100 { background: #f3f4f6; }
+  .bg-red-50-30 { background: rgba(254,242,242,.3); } .bg-amber-50-30 { background: rgba(255,251,235,.3); }
+  .text-gray-400 { color: #9ca3af; } .text-gray-500 { color: #6b7280; } .text-gray-600 { color: #4b5563; }
+  .text-gray-700 { color: #374151; } .text-gray-800 { color: #1f2937; } .text-gray-900 { color: #111827; }
+  .text-red-500 { color: #ef4444; } .text-red-600 { color: #dc2626; }
+  .text-amber-500 { color: #f59e0b; } .text-amber-600 { color: #d97706; }
+  .text-emerald-500 { color: #10b981; } .text-emerald-600 { color: #059669; }
+  .text-orange-600 { color: #ea580c; } .text-blue-500 { color: #3b82f6; } .text-blue-600 { color: #2563eb; }
+  .text-violet-500 { color: #8b5cf6; } .text-purple-400 { color: #c084fc; }
+  .text-white { color: #fff; }
+  .border-gray-100 { border-color: #f3f4f6; } .border-gray-200 { border-color: #e5e7eb; } .border-gray-300 { border-color: #d1d5db; }
+  .border-amber-300 { border-color: #fcd34d; } .border-red-300 { border-color: #fca5a5; }
+  .border-orange-300 { border-color: #fdba74; } .border-blue-300 { border-color: #93c5fd; }
+
+  /* Custom */
+  .nav-tab { padding: 12px; border-bottom: 2px solid transparent; font-size: 14px; background: none; border-left:0;border-right:0;border-top:0; cursor:pointer; color:#6b7280; }
+  .nav-tab:hover { color:#374151; }
+  .nav-tab.active { border-bottom-color: #fb923c; color:#111827; font-weight:600; }
+  .channel-tab { padding:12px 0; font-size:14px; border-bottom:2px solid transparent; background:none; border-left:0;border-right:0;border-top:0; cursor:pointer; color:#6b7280; display:flex;align-items:center;gap:8px; }
+  .channel-tab.active { border-bottom-color: #fb923c; color:#111827; font-weight:500; }
+  .icon-btn { padding:8px; border-radius:8px; border:none; background:none; cursor:pointer; display:flex;align-items:center;justify-content:center; }
+  .icon-btn:hover { background:#f3f4f6; }
+  .sm-btn { padding:4px 12px; border-radius:6px; border:1px solid #d1d5db; background:none; cursor:pointer; font-size:14px; color:#4b5563; display:flex;align-items:center;gap:6px; }
+  .sm-btn:hover { background:#f9fafb; }
+  .chip { font-size:12px; padding:4px 12px; border-radius:9999px; border:none; cursor:pointer; transition:all 150ms; }
+  .chip.active { background:#111827; color:#fff; }
+  .chip.inactive { background:#f3f4f6; color:#4b5563; }
+  .chip.inactive:hover { background:#e5e7eb; }
+  .cat-chip { font-size:12px; padding:4px 12px; border-radius:9999px; border:none; cursor:pointer; transition:all 150ms; display:flex;align-items:center;gap:4px; }
+  .cat-chip.active { background:#111827; color:#fff; }
+  .cat-chip.inactive { background:#f3f4f6; color:#4b5563; }
+  .cat-chip.inactive:hover { background:#e5e7eb; }
+  .action-btn { display:flex;align-items:center;gap:6px; font-size:12px; padding:4px 12px; border-radius:6px; border:1px solid; cursor:pointer; background:none; transition:all 150ms; }
+  .action-card { border:1px solid #e5e7eb; border-radius:8px; margin-bottom:8px; background:#fff; transition:all 150ms; }
+  .action-card.warning { border-color:#fcd34d; background:rgba(255,251,235,.3); }
+  .action-card.critical { border-color:#fca5a5; background:rgba(254,242,242,.3); }
+  .action-card-btn { width:100%; text-align:left; padding:12px 16px; display:flex; align-items:flex-start; gap:12px; background:none; border:none; cursor:pointer; }
+  .detail-row { display:flex; justify-content:space-between; gap:16px; padding:3px 0; }
+  .fab { position:fixed; bottom:24px; right:24px; width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
+    background:linear-gradient(135deg,#fb923c,#f97316); box-shadow:0 10px 15px -3px rgba(0,0,0,.1); display:flex;align-items:center;justify-content:center; z-index:50; transition:all 150ms; }
+  .fab:hover { transform:scale(1.05); box-shadow:0 20px 25px -5px rgba(0,0,0,.15); }
+  .fab-badge { position:absolute; top:-4px; right:-4px; width:24px; height:24px; border-radius:50%; background:#ef4444; color:#fff; font-size:12px; font-weight:700; display:flex;align-items:center;justify-content:center; box-shadow:0 1px 2px rgba(0,0,0,.1); animation:pulse 2s infinite; }
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.1); z-index:40; }
+  .panel { position:fixed; top:0; right:0; height:100%; width:440px; background:#fff; box-shadow:0 25px 50px -12px rgba(0,0,0,.25); z-index:50; display:flex; flex-direction:column; border-left:1px solid #e5e7eb; animation: slideIn 0.25s ease-out; }
+  .badge-notification { position:absolute; top:-2px; right:-2px; width:20px; height:20px; border-radius:50%; background:#ef4444; color:#fff; font-size:11px; font-weight:700; display:flex;align-items:center;justify-content:center; box-shadow:0 1px 2px rgba(0,0,0,.1); animation:pulse 2s infinite; }
+  .chevron-rotate { transition: transform 150ms; }
+  .chevron-rotate.open { transform: rotate(90deg); }
+  .dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#d1d5db; margin-left:4px; }
+  table { width:100%; border-collapse:collapse; }
+  td, th { padding: 10px 8px; }
+  .scroll-area { flex:1; overflow-y:auto; padding:12px 20px; }
+  .divider-v { width:1px; height:16px; background:#d1d5db; }
+  .divider-v-sm { width:1px; height:20px; background:#e5e7eb; margin:0 4px; align-self:center; }
+
+  @keyframes slideIn { from { transform: translateX(100%); opacity:0.8; } to { transform: translateX(0); opacity:1; } }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.7;} }
+
+  /* SVG icons inline */
+  .icon { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useRef } = React;
+
+// ── Inline SVG Icons ──
+const Icon = ({d, size=18, color="currentColor", className=""}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`icon ${className}`}>
+    <path d={d}/>
+  </svg>
+);
+
+const Icons = {
+  bot: (p={}) => <svg width={p.size||18} height={p.size||18} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>,
+  x: (p={}) => <svg width={p.size||18} height={p.size||18} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  checkCircle: (p={}) => <svg width={p.size||18} height={p.size||18} viewBox="0 0 24 24" fill="none" stroke={p.color||"#10b981"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+  alertTriangle: (p={}) => <svg width={p.size||18} height={p.size||18} viewBox="0 0 24 24" fill="none" stroke={p.color||"#f59e0b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+  alertOctagon: (p={}) => <svg width={p.size||18} height={p.size||18} viewBox="0 0 24 24" fill="none" stroke={p.color||"#ef4444"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+  chevronRight: (p={}) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"#9ca3af"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  chevronDown: (p={}) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke={p.color||"#9ca3af"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>,
+  arrowLeft: (p={}) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke={p.color||"#4b5563"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>,
+  arrowRight: (p={}) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke={p.color||"#4b5563"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+  externalLink: (p={}) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+  undo: (p={}) => <svg width={p.size||12} height={p.size||12} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>,
+  refreshCw: (p={}) => <svg width={p.size||12} height={p.size||12} viewBox="0 0 24 24" fill="none" stroke={p.color||"#10b981"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>,
+  settings: (p={}) => <svg width={p.size||18} height={p.size||18} viewBox="0 0 24 24" fill="none" stroke={p.color||"#6b7280"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  user: (p={}) => <svg width={p.size||18} height={p.size||18} viewBox="0 0 24 24" fill="none" stroke={p.color||"#6b7280"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  zap: (p={}) => <svg width={p.size||12} height={p.size||12} viewBox="0 0 24 24" fill="none" stroke={p.color||"#c084fc"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+  clock: (p={}) => <svg width={p.size||12} height={p.size||12} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  key: (p={}) => <svg width={p.size||12} height={p.size||12} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>,
+  wifiOff: (p={}) => <svg width={p.size||11} height={p.size||11} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>,
+  dollarSign: (p={}) => <svg width={p.size||11} height={p.size||11} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
+  link: (p={}) => <svg width={p.size||11} height={p.size||11} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+};
+
+const ChannelBadge = ({icon, color, textColor="#fff", small}) => (
+  <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",borderRadius:4,fontWeight:700,width:small?20:24,height:small?20:24,fontSize:12,background:color,color:textColor,flexShrink:0}}>{icon}</span>
+);
+
+const SeverityIcon = ({severity}) => {
+  if (severity==="resolved") return Icons.checkCircle();
+  if (severity==="warning") return Icons.alertTriangle();
+  return Icons.alertOctagon();
+};
+
+const CategoryTag = ({category}) => {
+  const m = {connectivity:{l:"Connectivity",icon:Icons.wifiOff,c:"#3b82f6"},pricing:{l:"Pricing",icon:Icons.dollarSign,c:"#8b5cf6"},mapping:{l:"Mapping",icon:Icons.link,c:"#f97316"}};
+  const meta = m[category]; if(!meta) return null;
+  return <span style={{display:"inline-flex",alignItems:"center",gap:3,fontSize:12,color:meta.c,background:"#f3f4f6",borderRadius:4,padding:"2px 6px"}}>{meta.icon({color:meta.c})} {meta.l}</span>;
+};
+
+const ACTIONS = [
+  {id:1,type:"auto_resolved",severity:"resolved",category:"mapping",channel:"Booking.com",ci:"B",cc:"#003580",title:"Unmapped room-rate removed",summary:'The room-rate "Superior Twin — Breakfast Included" no longer exists on Booking.com. I\'ve removed it from your mapping to prevent further sync errors.',details:{roomType:"Superior Twin",ratePlan:"Breakfast Included",errorCode:"RATE_PLAN_NOT_FOUND",attempts:12,firstSeen:"25 Feb, 08:14",resolvedAt:"25 Feb, 08:17",action:"Removed from channel mapping"},ts:"3 hours ago",canUndo:true},
+  {id:5,type:"auto_resolved",severity:"resolved",category:"connectivity",channel:"Expedia",ci:"E",cc:"#FBCE04",ct:"#1a1a1a",title:"OTA outage — updates rescheduled",summary:"Expedia's API was unreachable for 47 minutes (503 errors). I queued all pending availability and rate updates and delivered them successfully once the connection was restored.",details:{errorCode:"API_SERVICE_UNAVAILABLE",outageStart:"25 Feb, 06:12",outageEnd:"25 Feb, 06:59",queuedUpdates:"18 rate + 12 availability",attempts:6,firstSeen:"25 Feb, 06:12",resolvedAt:"25 Feb, 07:03",action:"Queued & re-delivered 30 updates"},ts:"5 hours ago",canUndo:false},
+  {id:6,type:"auto_resolved",severity:"resolved",category:"pricing",channel:"Booking.com",ci:"B",cc:"#003580",title:"Rate rejected — above OTA maximum",summary:'Booking.com rejected the rate of €485 for "Deluxe Suite — Flexible" on Sat 01/03 because it exceeds their maximum of €450. I\'ve capped the rate at €450 and delivered it.',details:{roomType:"Deluxe Suite",ratePlan:"Flexible",sentRate:"€485",otaMaximum:"€450",appliedRate:"€450",errorCode:"RATE_ABOVE_THRESHOLD",date:"Sat 01/03",attempts:1,firstSeen:"25 Feb, 09:30",resolvedAt:"25 Feb, 09:30",action:"Capped at OTA maximum (€450)"},ts:"2 hours ago",canUndo:true},
+  {id:2,type:"auto_resolved",severity:"resolved",category:"mapping",channel:"Expedia",ci:"E",cc:"#FBCE04",ct:"#1a1a1a",title:"Availability sync restored",summary:'Expedia rejected availability updates for "Deluxe King" due to a content mismatch (max occupancy). I\'ve corrected the occupancy value from 3 to 2 to match Expedia\'s listing.',details:{roomType:"Deluxe King",ratePlan:"Non-Refundable",errorCode:"OCCUPANCY_MISMATCH",attempts:5,firstSeen:"25 Feb, 10:22",resolvedAt:"25 Feb, 10:24",action:"Corrected max occupancy (3→2)"},ts:"1 hour ago",canUndo:true},
+  {id:8,type:"needs_attention",severity:"critical",category:"connectivity",channel:"Booking.com",ci:"B",cc:"#003580",title:"Hotel disconnected from channel",summary:'Booking.com reports that Hotel La Legende is no longer connected. All rate and availability updates have been suspended. Please verify your property status or contact your Booking.com account manager.',details:{errorCode:"PROPERTY_NOT_CONNECTED",suspendedUpdates:"All (rates, availability, restrictions)",attempts:34,firstSeen:"24 Feb, 22:10",action:"Awaiting your input — all syncing paused"},ts:"13 hours ago",canUndo:false},
+  {id:7,type:"needs_attention",severity:"warning",category:"pricing",channel:"Expedia",ci:"E",cc:"#FBCE04",ct:"#1a1a1a",title:"Rate rejected — below OTA minimum",summary:'Expedia rejected the rate of €39 for "Standard Double — Last Minute" on Sun 01/03 because it\'s below their minimum of €50. I can\'t auto-correct this as it may be intentional. Please confirm the intended rate.',details:{roomType:"Standard Double",ratePlan:"Last Minute",sentRate:"€39",otaMinimum:"€50",errorCode:"RATE_BELOW_THRESHOLD",date:"Sun 01/03",attempts:3,firstSeen:"25 Feb, 10:45",action:"Awaiting your input"},ts:"45 min ago",canUndo:false},
+  {id:3,type:"needs_attention",severity:"warning",category:"mapping",channel:"Booking.com",ci:"B",cc:"#003580",title:"Rate delivery failing — action needed",summary:'Rate updates for "Standard Double — Member Rate" have been rejected 23 times since yesterday. Booking.com reports this rate plan is suspended.',details:{roomType:"Standard Double",ratePlan:"Member Rate",errorCode:"RATE_PLAN_SUSPENDED",attempts:23,firstSeen:"24 Feb, 19:05",action:"Awaiting your input"},ts:"18 hours ago",canUndo:false},
+  {id:9,type:"needs_attention",severity:"critical",category:"connectivity",channel:"Expedia",ci:"E",cc:"#FBCE04",ct:"#1a1a1a",title:"API credentials expired",summary:"Expedia is returning 401 Unauthorized errors for all requests. Your API credentials appear to have expired. Rate and availability updates are being queued but cannot be delivered.",details:{errorCode:"AUTH_CREDENTIALS_EXPIRED",queuedUpdates:"42 updates pending",attempts:15,firstSeen:"25 Feb, 07:00",action:"Awaiting credential renewal — updates queued"},ts:"4 hours ago",canUndo:false},
+  {id:10,type:"auto_resolved",severity:"resolved",category:"connectivity",channel:"Booking.com",ci:"B",cc:"#003580",title:"Partial update recovered",summary:"A connection timeout caused a partial delivery — availability was updated but rates were not for 4 room types on Fri 27/02. I detected the mismatch and re-sent the missing rate updates.",details:{errorCode:"CONNECTION_TIMEOUT_PARTIAL",affectedDate:"Fri 27/02",affectedRooms:"4 room types",delivered:"Availability ✓ — Rates ✗",attempts:2,firstSeen:"25 Feb, 09:15",resolvedAt:"25 Feb, 09:18",action:"Re-delivered missing rate updates"},ts:"2 hours ago",canUndo:false},
+  {id:11,type:"auto_resolved",severity:"resolved",category:"pricing",channel:"Expedia",ci:"E",cc:"#FBCE04",ct:"#1a1a1a",title:"Currency mismatch corrected",summary:'Rates for "Superior Twin" were being sent in GBP but Expedia expects EUR. I\'ve applied today\'s exchange rate (1 GBP = 1.17 EUR) and re-delivered.',details:{roomType:"Superior Twin",sentCurrency:"GBP",expectedCurrency:"EUR",exchangeRate:"1 GBP = 1.17 EUR",errorCode:"CURRENCY_MISMATCH",attempts:4,firstSeen:"25 Feb, 08:50",resolvedAt:"25 Feb, 08:52",action:"Converted GBP → EUR and re-delivered"},ts:"3 hours ago",canUndo:true},
+  {id:4,type:"auto_resolved",severity:"resolved",category:"mapping",channel:"Expedia",ci:"E",cc:"#FBCE04",ct:"#1a1a1a",title:"Duplicate restriction cleared",summary:"A close-out restriction was being sent for a date range already closed on Expedia, causing rejection loops. I've de-duplicated the restriction queue.",details:{errorCode:"DUPLICATE_RESTRICTION",attempts:8,firstSeen:"25 Feb, 06:30",resolvedAt:"25 Feb, 06:31",action:"De-duplicated restriction queue"},ts:"5 hours ago",canUndo:false},
+  {id:12,type:"auto_resolved",severity:"resolved",category:"connectivity",channel:"Booking.com",ci:"B",cc:"#003580",title:"Rate limit hit — updates throttled",summary:"Booking.com rate-limited our requests (429). I've throttled delivery to 10 req/sec and all 26 pending updates have been delivered.",details:{errorCode:"RATE_LIMIT_EXCEEDED",pendingUpdates:"26 updates",throttleApplied:"10 req/sec",attempts:3,firstSeen:"25 Feb, 11:00",resolvedAt:"25 Feb, 11:04",action:"Throttled delivery, all updates sent"},ts:"32 min ago",canUndo:false},
+];
+
+const DATES = [{d:"Mon 23/02",h:false},{d:"Tue 24/02",h:false},{d:"Wed 25/02",h:false},{d:"Thu 26/02",h:true},{d:"Fri 27/02",h:false},{d:"Sat 28/02",h:false},{d:"Sun 01/03",h:false}];
+const RATES = [133,133,133,133,141,137,156];
+const COMP = [{n:"Boutique Hotel S...",r:[152,152,"Sold out",120,195,"1 guest only",71]},{n:"ALMA Grand Pla...",r:[161,171,171,161,186,186,150]},{n:"Hotel La Grande ...",r:[104,135,113,86,108,121,82]},{n:"Aris Grand Place...",r:[161,171,171,161,191,191,151]}];
+const RESTR = ["Closed","Open","Closed","Closed","Closed","Closed","Closed"];
+
+const LABELS = {roomType:"Room type",ratePlan:"Rate plan",errorCode:"Error code",attempts:"Failed attempts",firstSeen:"First seen",resolvedAt:"Resolved at",action:"Action taken",outageStart:"Outage start",outageEnd:"Outage end",queuedUpdates:"Queued updates",sentRate:"Sent rate",otaMaximum:"OTA maximum",otaMinimum:"OTA minimum",appliedRate:"Applied rate",date:"Date",suspendedUpdates:"Suspended",affectedDate:"Affected date",affectedRooms:"Affected rooms",delivered:"Delivery status",sentCurrency:"Sent currency",expectedCurrency:"Expected currency",exchangeRate:"Exchange rate",pendingUpdates:"Pending updates",throttleApplied:"Throttle applied"};
+
+function ActionCard({a, expanded, onToggle}) {
+  const [undone, setUndone] = useState(false);
+  const cls = a.severity==="critical"?"action-card critical":a.severity==="warning"?"action-card warning":"action-card";
+  return (
+    <div className={cls}>
+      <button className="action-card-btn" onClick={onToggle}>
+        <div style={{marginTop:2}}><SeverityIcon severity={a.severity}/></div>
+        <div style={{flex:1,minWidth:0}}>
+          <div className="flex items-center gap-2 flex-wrap" style={{marginBottom:4}}>
+            <ChannelBadge icon={a.ci} color={a.cc} textColor={a.ct} small/>
+            <span className="text-xs text-gray-500">{a.channel}</span>
+            <CategoryTag category={a.category}/>
+            <span className="text-xs text-gray-400 ml-auto" style={{flexShrink:0}}>{a.ts}</span>
+          </div>
+          <p className="text-sm font-medium text-gray-900 leading-snug">{a.title}</p>
+        </div>
+        <div className={`chevron-rotate ${expanded?"open":""}`} style={{marginTop:4,flexShrink:0}}>{Icons.chevronRight()}</div>
+      </button>
+      {expanded && (
+        <div style={{padding:"0 16px 16px",borderTop:"1px solid #f3f4f6"}}>
+          <p className="text-sm text-gray-600 leading-relaxed" style={{marginTop:12}}>{a.summary}</p>
+          <div style={{marginTop:12,background:"#f9fafb",borderRadius:6,padding:12}}>
+            {Object.entries(a.details).map(([k,v])=>(
+              <div key={k} className="detail-row text-xs">
+                <span className="text-gray-500">{LABELS[k]||k}</span>
+                <span className={`text-right ${k==="resolvedAt"?"text-emerald-600 font-medium":k==="action"?"text-gray-800 font-medium":k==="errorCode"?"font-mono text-gray-800":"text-gray-800"}`}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap" style={{marginTop:12}}>
+            {a.canUndo && !undone && <button className="action-btn" style={{color:"#4b5563",borderColor:"#d1d5db"}} onClick={e=>{e.stopPropagation();setUndone(true)}}>{Icons.undo()} Undo this action</button>}
+            {undone && <span className="flex items-center gap-1-5 text-xs" style={{color:"#d97706",fontWeight:500}}>{Icons.clock({color:"#d97706"})} Undo requested — restoring...</span>}
+            {(a.severity==="warning"||a.severity==="critical") && <button className="action-btn" style={{color:"#ea580c",borderColor:"#fdba74"}} onClick={e=>e.preventDefault()}>{Icons.externalLink({color:"#ea580c"})} Open {a.channel} extranet</button>}
+            {a.severity==="critical"&&a.details.errorCode==="AUTH_CREDENTIALS_EXPIRED" && <button className="action-btn" style={{color:"#2563eb",borderColor:"#93c5fd"}} onClick={e=>e.preventDefault()}>{Icons.key({color:"#2563eb"})} Renew credentials</button>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [seen, setSeen] = useState(false);
+
+  const rc = ACTIONS.filter(a=>a.type==="auto_resolved").length;
+  const ac = ACTIONS.filter(a=>a.type==="needs_attention").length;
+  const cc = ACTIONS.filter(a=>a.severity==="critical").length;
+  const tc = ACTIONS.length;
+
+  const filtered = filter==="all"?ACTIONS:filter==="resolved"?ACTIONS.filter(a=>a.type==="auto_resolved"):filter==="attention"?ACTIONS.filter(a=>a.type==="needs_attention"):ACTIONS.filter(a=>a.category===filter);
+
+  const openPanel = ()=>{setOpen(true);setSeen(true);};
+
+  return (
+    <div style={{minHeight:"100vh",background:"#f9fafb",position:"relative"}}>
+      {/* Top nav */}
+      <div className="bg-white flex items-center justify-between" style={{borderBottom:"1px solid #e5e7eb",padding:"0 24px",height:56}}>
+        <div className="flex items-center gap-4">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 24L14 4L18 12L28 12" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <div style={{width:32,height:32,background:"#fb923c",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:"#fff",fontSize:12}}>🔒</span></div>
+          <nav className="flex items-center gap-1" style={{marginLeft:16}}>
+            {["Monthly view","Weekly view","Events","Reservations"].map(t=><button key={t} className={`nav-tab ${t==="Weekly view"?"active":""}`}>{t}</button>)}
+          </nav>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="icon-btn" onClick={openPanel} title="Channel Agent" style={{position:"relative"}}>
+            {Icons.bot({size:20,color:"#4b5563"})}
+            {!seen&&cc>0&&<span className="badge-notification">{cc}</span>}
+          </button>
+          <div className="sm-btn">{Icons.chevronDown()} <span className="font-medium text-gray-800">Hotel La Legende</span></div>
+          <button className="icon-btn">{Icons.settings()}</button>
+          <button className="icon-btn">{Icons.user()}</button>
+        </div>
+      </div>
+
+      {/* Sub header */}
+      <div className="bg-white flex items-center justify-between" style={{borderBottom:"1px solid #e5e7eb",padding:"0 24px",height:48}}>
+        <div className="flex items-center gap-2">
+          <button className="sm-btn" style={{padding:"4px 6px"}}>{Icons.arrowLeft()}</button>
+          <button className="sm-btn" style={{padding:"4px 6px"}}>{Icons.arrowRight()}</button>
+          <div className="sm-btn" style={{marginLeft:8}}><span className="font-medium text-gray-800 text-sm">Week of 23 Feb 2026</span> {Icons.chevronDown()}</div>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-600">My Channels {Icons.externalLink()}</div>
+      </div>
+
+      {/* Rate table */}
+      <div style={{padding:"16px 24px"}}>
+        <div className="bg-white rounded-lg" style={{border:"1px solid #e5e7eb",overflow:"hidden"}}>
+          <table className="text-sm">
+            <thead>
+              <tr style={{borderBottom:"1px solid #f3f4f6"}}>
+                <th style={{width:192,textAlign:"left",padding:"12px 16px"}}></th>
+                {DATES.map(d=><th key={d.d} style={{textAlign:"center",padding:"12px 8px"}}>
+                  <div className="text-xs font-medium" style={d.h?{background:"#fb923c",color:"#fff",borderRadius:9999,padding:"4px 8px",display:"inline-block"}:{color:"#374151"}}>{d.d}</div>
+                  <div className="text-xs text-gray-400" style={{marginTop:2}}>OTB --</div>
+                </th>)}
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={{borderBottom:"1px solid #f3f4f6"}}>
+                <td style={{padding:"10px 16px"}} className="text-xs text-gray-600">Restrictions (Hotel)</td>
+                {DATES.map((_,i)=><td key={i} className="text-center text-xs text-gray-600">Open</td>)}
+              </tr>
+              <tr style={{borderBottom:"1px solid #f3f4f6"}}>
+                <td style={{padding:"10px 16px"}}><div className="flex items-center gap-2">{Icons.chevronRight({size:12})} <span className="text-xs text-gray-500">Superi...</span> <span style={{background:"#f3f4f6",color:"#374151",padding:"2px 8px",borderRadius:4,fontSize:12,fontWeight:500}}>Base room</span></div></td>
+                {RATES.map((r,i)=><td key={i} className="text-center text-sm font-medium text-gray-900">€ {r} {i>=3&&Icons.zap()}</td>)}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style={{marginTop:24}}>
+          <div className="flex items-center justify-between" style={{marginBottom:12}}>
+            <h2 className="text-base font-semibold text-gray-900">Channels</h2>
+            <button className="sm-btn text-sm">Public discounts report</button>
+          </div>
+          <div className="bg-white rounded-lg" style={{border:"1px solid #e5e7eb",overflow:"hidden"}}>
+            <div style={{borderBottom:"1px solid #e5e7eb",padding:"0 16px",display:"flex",gap:16}}>
+              {[{n:"Own website",i:"🏠"},{n:"Booking.com",i:"B",a:true},{n:"Expedia",i:"✈"}].map(ch=>(
+                <button key={ch.n} className={`channel-tab ${ch.a?"active":""}`}>{ch.i==="B"?<ChannelBadge icon="B" color="#003580" small/>:<span>{ch.i}</span>} {ch.n}</button>
+              ))}
+            </div>
+            <table className="text-sm">
+              <tbody>
+                <tr style={{borderBottom:"1px solid #f3f4f6"}}>
+                  <td style={{width:192,padding:"10px 16px"}} className="text-xs text-gray-600">Restrictions</td>
+                  {RESTR.map((r,i)=><td key={i} className={`text-center text-xs ${r==="Closed"?"text-red-500 font-medium":"text-gray-600"}`}>{r}</td>)}
+                </tr>
+                <tr style={{borderBottom:"1px solid #f3f4f6",background:"rgba(249,250,251,.5)"}}>
+                  <td style={{padding:"10px 16px"}}><div className="flex items-center gap-2">{Icons.chevronDown({size:12})} <span className="text-xs text-gray-500">Superi...</span> <span style={{background:"#f3f4f6",color:"#374151",padding:"2px 8px",borderRadius:4,fontSize:12,fontWeight:500}}>Base room</span></div></td>
+                  {RATES.map((r,i)=><td key={i} className="text-center text-sm text-gray-400">€ {r} <span className="dot"></span></td>)}
+                </tr>
+                {COMP.map(c=>(
+                  <tr key={c.n} style={{borderBottom:"1px solid #f9fafb"}}>
+                    <td style={{padding:"10px 16px",maxWidth:180}} className="text-xs text-gray-700 truncate">{c.n}</td>
+                    {c.r.map((r,i)=><td key={i} className="text-center text-sm text-gray-700">{typeof r==="string"?<span className="text-xs text-gray-400 italic">{r}</span>:`€ ${r}`}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* FAB */}
+      {!open && <button className="fab" onClick={openPanel}>{Icons.bot({size:24,color:"#fff"})}{!seen&&<span className="fab-badge">{tc}</span>}</button>}
+
+      {/* Panel */}
+      {open && <>
+        <div className="overlay" onClick={()=>setOpen(false)}/>
+        <div className="panel">
+          <div className="flex items-center justify-between flex-shrink-0" style={{padding:"16px 20px",borderBottom:"1px solid #e5e7eb",background:"linear-gradient(to right,#f9fafb,#fff)"}}>
+            <div className="flex items-center gap-3">
+              <div style={{width:36,height:36,borderRadius:8,background:"linear-gradient(135deg,#fb923c,#f97316)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 2px rgba(0,0,0,.05)"}}>{Icons.bot({size:18,color:"#fff"})}</div>
+              <div><div className="text-sm font-semibold text-gray-900">Channel Agent</div><div className="text-xs text-gray-500">Monitoring your OTA connections</div></div>
+            </div>
+            <button className="icon-btn" onClick={()=>setOpen(false)}>{Icons.x()}</button>
+          </div>
+
+          <div className="flex items-center gap-3 flex-shrink-0" style={{padding:"12px 20px",borderBottom:"1px solid #f3f4f6",background:"rgba(249,250,251,.5)"}}>
+            <div className="flex items-center gap-1-5 text-xs">{Icons.checkCircle({size:14})} <span className="text-gray-700"><strong className="text-emerald-600">{rc}</strong> auto-resolved</span></div>
+            <div className="divider-v"/>
+            <div className="flex items-center gap-1-5 text-xs">{Icons.alertTriangle({size:14})} <span className="text-gray-700"><strong className="text-amber-600">{ac-cc}</strong> warnings</span></div>
+            <div className="divider-v"/>
+            <div className="flex items-center gap-1-5 text-xs">{Icons.alertOctagon({size:14})} <span className="text-gray-700"><strong className="text-red-600">{cc}</strong> critical</span></div>
+          </div>
+
+          <div className="flex gap-1 flex-wrap flex-shrink-0" style={{padding:"12px 20px 8px"}}>
+            {[["all","All",tc],["resolved","Resolved",rc],["attention","Needs attention",ac]].map(([k,l,c])=>(
+              <button key={k} className={`chip ${filter===k?"active":"inactive"}`} onClick={()=>setFilter(k)}>{l} ({c})</button>
+            ))}
+            <div className="divider-v-sm"/>
+            {[["connectivity","Connectivity",Icons.wifiOff],["pricing","Pricing",Icons.dollarSign],["mapping","Mapping",Icons.link]].map(([k,l,Ic])=>{
+              const cnt=ACTIONS.filter(a=>a.category===k).length;
+              return <button key={k} className={`cat-chip ${filter===k?"active":"inactive"}`} onClick={()=>setFilter(k)}>{Ic({color:filter===k?"#fff":"currentColor"})} {l} ({cnt})</button>;
+            })}
+          </div>
+
+          <div className="scroll-area">
+            {filtered.length===0?<div className="text-center text-gray-400 text-sm" style={{padding:"48px 0"}}>No actions in this category.</div>:
+              filtered.map(a=><ActionCard key={a.id} a={a} expanded={expanded===a.id} onToggle={()=>setExpanded(expanded===a.id?null:a.id)}/>)}
+          </div>
+
+          <div className="flex-shrink-0" style={{padding:"12px 20px",borderTop:"1px solid #e5e7eb",background:"rgba(249,250,251,.8)"}}>
+            <div className="flex items-center gap-2 text-xs text-gray-500">{Icons.refreshCw()} Monitoring active · Last check 2 min ago</div>
+            <p className="text-xs text-gray-400" style={{marginTop:4}}>Channel Agent auto-resolves errors when safe. You'll always be notified of what changed.</p>
+          </div>
+        </div>
+      </>}
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById('root'));
+</script>
+</body>
+</html>

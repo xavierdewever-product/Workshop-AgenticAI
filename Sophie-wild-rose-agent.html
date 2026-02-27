@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wild Rose · Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream: #f5f0e8;
+  --parchment: #ede7d9;
+  --rose: #b85c6e;
+  --rose-pale: #f0dde2;
+  --rose-mid: rgba(184,92,110,0.15);
+  --ink: #2a2118;
+  --ink-light: #5c4f42;
+  --ink-faint: #9a8e84;
+  --sage: #6a8c6e;
+  --sage-pale: #e8f0e4;
+  --gold: #b8922a;
+  --gold-pale: #faf3e0;
+  --ota-orange: #b86a30;
+  --ota-pale: #fdf0e6;
+  --border: rgba(42,33,24,0.1);
+  --border-mid: rgba(42,33,24,0.16);
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px 80px;
+}
+
+.container { width: 100%; max-width: 430px; }
+
+/* Header */
+.header {
+  margin-bottom: 28px;
+  animation: fadeDown 0.7s ease both;
+}
+
+.hotel-row {
+  display: flex; align-items: center; gap: 7px;
+  margin-bottom: 8px;
+}
+
+.rose-mark {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--rose); display: flex; align-items: center;
+  justify-content: center; font-size: 8px; color: white; flex-shrink: 0;
+}
+
+.hotel-name {
+  font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+  font-family: 'DM Mono', monospace; color: var(--ink-faint); font-weight: 400;
+}
+
+.greeting {
+  font-size: 26px; font-weight: 300; line-height: 1.2;
+  color: var(--ink); margin-bottom: 6px;
+}
+.greeting em { font-style: italic; color: var(--rose); }
+
+.header-foot {
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.date-stamp {
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  color: var(--ink-faint); font-weight: 300;
+}
+
+.today-rev {
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  color: var(--gold);
+  background: var(--gold-pale);
+  border: 1px solid rgba(184,146,42,0.25);
+  padding: 3px 9px; border-radius: 20px;
+}
+
+/* Cards */
+.cards { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+.guest-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  animation: fadeUp 0.5s ease both;
+}
+.guest-card:nth-child(1) { animation-delay: 0.1s; }
+.guest-card:nth-child(2) { animation-delay: 0.2s; }
+.guest-card:nth-child(3) { animation-delay: 0.3s; }
+.guest-card:hover { border-color: var(--border-mid); }
+.guest-card.open { border-color: var(--rose); }
+
+/* Accent strip */
+.card-strip {
+  height: 2px; width: 100%;
+}
+.strip-rose { background: var(--rose); }
+.strip-gold { background: var(--gold); }
+.strip-sage { background: var(--sage); }
+
+.card-main {
+  display: flex; align-items: center;
+  padding: 13px 14px; gap: 10px;
+}
+
+.room-tag {
+  font-size: 10px; font-family: 'DM Mono', monospace;
+  color: var(--ink-faint); background: var(--parchment);
+  padding: 4px 7px; border-radius: 2px; flex-shrink: 0;
+  min-width: 34px; text-align: center; font-weight: 400;
+}
+
+.guest-info { flex: 1; min-width: 0; }
+
+.name-line {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 3px;
+}
+
+.guest-name {
+  font-size: 17px; font-weight: 400; color: var(--ink);
+}
+
+.stay-badge {
+  font-size: 9px; font-family: 'DM Mono', monospace;
+  letter-spacing: 0.08em; padding: 2px 6px; border-radius: 20px;
+  flex-shrink: 0; text-transform: uppercase;
+}
+.badge-rose { background: var(--rose-pale); color: var(--rose); border: 1px solid rgba(184,92,110,0.2); }
+.badge-gold { background: var(--gold-pale); color: var(--gold); border: 1px solid rgba(184,146,42,0.2); }
+.badge-sage { background: var(--sage-pale); color: var(--sage); border: 1px solid rgba(106,140,110,0.25); }
+
+.sub-line {
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  color: var(--ink-faint); display: flex; align-items: center; gap: 5px;
+}
+
+.ch-dot {
+  width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+}
+.ch-ota { background: var(--ota-orange); }
+.ch-direct { background: var(--sage); }
+
+/* Price block */
+.price-block { text-align: right; flex-shrink: 0; }
+
+.price-main {
+  font-size: 16px; font-family: 'DM Mono', monospace;
+  color: var(--ink); font-weight: 400;
+}
+
+.price-sub {
+  font-size: 10px; font-family: 'DM Mono', monospace;
+  margin-top: 2px;
+}
+.price-sub.ota { color: var(--ota-orange); }
+.price-sub.direct { color: var(--sage); }
+
+/* Pills */
+.pill-row {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  padding: 0 14px 12px 58px;
+}
+
+.mpill {
+  font-size: 11px; background: var(--parchment);
+  color: var(--ink-light); padding: 3px 8px; border-radius: 20px;
+}
+
+/* Expand */
+.expand {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.38s cubic-bezier(0.16,1,0.3,1);
+  border-top: 1px solid transparent;
+}
+.expand.open {
+  max-height: 360px;
+  border-top-color: var(--border);
+}
+
+.expand-body { padding: 16px; background: var(--parchment); }
+
+.brief {
+  font-size: 16px; font-style: italic; font-weight: 300;
+  color: var(--ink-light); line-height: 1.6;
+  margin-bottom: 14px;
+}
+.brief strong { color: var(--ink); font-style: normal; font-weight: 400; }
+
+.done-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.done-row {
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  color: var(--ink-faint); display: flex; gap: 8px;
+}
+.done-row::before { content: '✓'; color: var(--sage); flex-shrink: 0; }
+
+.you-row {
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  color: var(--ink); display: flex; gap: 8px;
+  background: white; border: 1px solid var(--border);
+  padding: 8px 10px; border-radius: 2px;
+  margin-bottom: 10px;
+}
+.you-row::before { content: '→'; color: var(--rose); flex-shrink: 0; }
+
+.nudge {
+  background: var(--gold-pale);
+  border: 1px solid rgba(184,146,42,0.25);
+  border-radius: 2px; padding: 10px 12px;
+  display: flex; gap: 8px; align-items: flex-start;
+  cursor: pointer; transition: background 0.2s;
+}
+.nudge:hover { background: #f5ecd0; }
+.nudge-text {
+  font-size: 11px; font-family: 'DM Mono', monospace;
+  color: var(--gold); line-height: 1.55; flex: 1;
+}
+.nudge-arrow { color: var(--gold); font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+
+/* Ask bar */
+.ask-bar {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  animation: fadeUp 0.5s ease 0.4s both;
+}
+
+.ask-top {
+  padding: 10px 14px 6px;
+  display: flex; align-items: center; gap: 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ask-pulse {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rose); flex-shrink: 0;
+  animation: pulse 2s ease infinite;
+}
+
+.ask-label {
+  font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+  font-family: 'DM Mono', monospace; color: var(--ink-faint);
+}
+
+.ask-msgs {
+  padding: 12px 14px 6px;
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 160px; overflow-y: auto;
+}
+
+.amsg { font-size: 15px; line-height: 1.55; }
+.amsg.agent { font-style: italic; font-weight: 300; color: var(--ink-light); }
+.amsg.gm {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--ink-faint); align-self: flex-end;
+  background: var(--parchment); padding: 5px 9px; border-radius: 2px;
+}
+
+.typing-hint {
+  padding: 0 14px 8px;
+  font-size: 12px; font-family: 'DM Mono', monospace;
+  color: var(--ink-faint); display: none;
+  font-style: italic;
+}
+.typing-hint.show { display: block; }
+
+.ask-input-row {
+  display: flex; border-top: 1px solid var(--border);
+}
+.ask-input {
+  flex: 1; background: var(--parchment); border: none;
+  padding: 11px 13px; font-family: 'DM Mono', monospace;
+  font-size: 12px; color: var(--ink); outline: none;
+}
+.ask-input::placeholder { color: var(--ink-faint); }
+.ask-send {
+  background: var(--rose); color: white; border: none;
+  padding: 0 16px; font-family: 'DM Mono', monospace;
+  font-size: 11px; letter-spacing: 0.1em; cursor: pointer;
+  transition: background 0.2s;
+}
+.ask-send:hover { background: #a04d5f; }
+.ask-send:disabled { opacity: 0.35; cursor: not-allowed; }
+
+@keyframes fadeDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+.foot { text-align:center; margin-top:28px; font-size:10px; font-family:'DM Mono',monospace; color:var(--ink-faint); letter-spacing:0.15em; opacity:0.5; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="hotel-row">
+      <div class="rose-mark">✦</div>
+      <div class="hotel-name">The Wild Rose Country House</div>
+    </div>
+    <div class="greeting">Good morning. <em>4 arrivals today.</em></div>
+    <div class="header-foot">
+      <div class="date-stamp">Fri 27 Feb · 07:14</div>
+      <div class="today-rev">£892 arriving today</div>
+    </div>
+  </div>
+
+  <div class="cards">
+
+    <!-- George -->
+    <div class="guest-card" onclick="toggleCard(this)">
+      <div class="card-strip strip-rose"></div>
+      <div class="card-main">
+        <div class="room-tag">Rm 6</div>
+        <div class="guest-info">
+          <div class="name-line">
+            <div class="guest-name">George Denman</div>
+            <div class="stay-badge badge-rose">3rd stay</div>
+          </div>
+          <div class="sub-line">
+            <span class="ch-dot ch-ota"></span>
+            Booking.com · 2 nights · arr. 3pm
+          </div>
+        </div>
+        <div class="price-block">
+          <div class="price-main">£240</div>
+          <div class="price-sub ota">−£38 OTA fee</div>
+        </div>
+      </div>
+      <div class="pill-row">
+        <span class="mpill">🌡️ cold room</span>
+        <span class="mpill">☕ black coffee</span>
+        <span class="mpill">🛁 extra towels</span>
+        <span class="mpill">🍮 sticky toffee pud</span>
+      </div>
+      <div class="expand">
+        <div class="expand-body">
+          <div class="brief">George won't have to ask for a thing. <strong>Room cold, towels stacked, coffee flask waiting, pudding held both evenings.</strong> He'll just notice this place remembers him.</div>
+          <div class="done-list">
+            <div class="done-row">Housekeeping: Rm 6 at 16°C, extra towels on bed</div>
+            <div class="done-row">Kitchen: sticky toffee pudding reserved Fri + Sat</div>
+            <div class="done-row">Welcome coffee flask added to arrival prep</div>
+          </div>
+          <div class="you-row">Say hello personally at check-in — he'll remember it</div>
+          <div class="nudge" onclick="nudgeDone(event,this)">
+            <div class="nudge-text">3rd stay, all via Booking.com. You've paid ~£114 in OTA fees for George alone. Draft a direct-booking invite after checkout?</div>
+            <div class="nudge-arrow">→</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patricia -->
+    <div class="guest-card" onclick="toggleCard(this)">
+      <div class="card-strip strip-gold"></div>
+      <div class="card-main">
+        <div class="room-tag">Rm 1</div>
+        <div class="guest-info">
+          <div class="name-line">
+            <div class="guest-name">Dr. Patricia Lowe</div>
+            <div class="stay-badge badge-gold">7th stay</div>
+          </div>
+          <div class="sub-line">
+            <span class="ch-dot ch-direct"></span>
+            Direct · 3 nights · arr. 2pm
+          </div>
+        </div>
+        <div class="price-block">
+          <div class="price-main">£420</div>
+          <div class="price-sub direct">100% yours</div>
+        </div>
+      </div>
+      <div class="pill-row">
+        <span class="mpill">🛏️ firm pillow</span>
+        <span class="mpill">🍷 Malbec on arrival</span>
+        <span class="mpill">🚿 no bath</span>
+        <span class="mpill">quiet table</span>
+      </div>
+      <div class="expand">
+        <div class="expand-body">
+          <div class="brief">Your most loyal guest. <strong>7 stays, always direct, never complained. Lifetime value: £2,340.</strong> Everything set exactly as she likes it.</div>
+          <div class="done-list">
+            <div class="done-row">Firm pillow confirmed with housekeeping</div>
+            <div class="done-row">Malbec in room — her usual bottle</div>
+            <div class="done-row">Quiet corner table reserved all 3 evenings</div>
+          </div>
+          <div class="you-row">7 stays with no ask — this is the right moment for a testimonial</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Whitfields -->
+    <div class="guest-card" onclick="toggleCard(this)">
+      <div class="card-strip strip-sage"></div>
+      <div class="card-main">
+        <div class="room-tag">Rm 3</div>
+        <div class="guest-info">
+          <div class="name-line">
+            <div class="guest-name">S. & T. Whitfield</div>
+            <div class="stay-badge badge-sage">1st stay</div>
+          </div>
+          <div class="sub-line">
+            <span class="ch-dot ch-direct"></span>
+            Direct · 1 night · arr. 5pm · anniversary
+          </div>
+        </div>
+        <div class="price-block">
+          <div class="price-main">£145</div>
+          <div class="price-sub direct">100% yours</div>
+        </div>
+      </div>
+      <div class="pill-row">
+        <span class="mpill">💐 anniversary</span>
+        <span class="mpill">first visit</span>
+      </div>
+      <div class="expand">
+        <div class="expand-body">
+          <div class="brief">First timers who booked direct and mentioned their anniversary. <strong>A small wow moment tonight could turn them into regulars.</strong></div>
+          <div class="done-list">
+            <div class="done-row">Kitchen: complimentary dessert flagged for table</div>
+            <div class="done-row">Rm 3: fresh flowers arranged</div>
+          </div>
+          <div class="you-row">A handwritten note would make this stay unforgettable</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Ask bar -->
+  <div class="ask-bar">
+    <div class="ask-top">
+      <div class="ask-pulse"></div>
+      <div class="ask-label">Ask about today</div>
+    </div>
+    <div class="ask-msgs" id="askMsgs">
+      <div class="amsg agent">Everything's in hand. What would you like to know before the day starts?</div>
+    </div>
+    <div class="typing-hint" id="typing">thinking…</div>
+    <div class="ask-input-row">
+      <input class="ask-input" id="askInput" placeholder="e.g. should I adjust rates on the 3 empty rooms?" onkeydown="if(event.key==='Enter')send()" />
+      <button class="ask-send" id="askBtn" onclick="send()">Ask</button>
+    </div>
+  </div>
+
+  <div class="foot">Wild Rose · Performance Agent · Lighthouse</div>
+</div>
+
+<script>
+  function toggleCard(card) {
+    const panel = card.querySelector('.expand');
+    const isOpen = panel.classList.contains('open');
+    document.querySelectorAll('.expand.open').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.guest-card.open').forEach(c => c.classList.remove('open'));
+    if (!isOpen) { panel.classList.add('open'); card.classList.add('open'); }
+  }
+
+  function nudgeDone(e, el) {
+    e.stopPropagation();
+    el.querySelector('.nudge-text').textContent = '✓ Scheduled — draft ready Sunday morning after checkout.';
+    el.querySelector('.nudge-arrow').textContent = '';
+    el.style.background = '#eef5ec';
+    el.querySelector('.nudge-text').style.color = 'var(--sage)';
+    el.style.cursor = 'default';
+  }
+
+  async function send() {
+    const input = document.getElementById('askInput');
+    const text = input.value.trim();
+    if (!text) return;
+    addMsg(text, 'gm');
+    input.value = '';
+    document.getElementById('askBtn').disabled = true;
+    document.getElementById('typing').classList.add('show');
+
+    await new Promise(r => setTimeout(r, 1400));
+
+    document.getElementById('typing').classList.remove('show');
+    addMsg("Seven stays is a real milestone — I'd treat her like she owns the place. When you greet her, just say you're glad she's back. No fuss. Then after checkout on Monday, I'll draft a personal testimonial request from you — warm, short, specific to her stays. I'll have it ready for your approval.", 'agent');
+    document.getElementById('askBtn').disabled = false;
+  }
+
+  function addMsg(text, role) {
+    const box = document.getElementById('askMsgs');
+    const el = document.createElement('div');
+    el.className = `amsg ${role}`;
+    el.textContent = text;
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.3s ease';
+    box.appendChild(el);
+    requestAnimationFrame(() => el.style.opacity = '1');
+    box.scrollTop = box.scrollHeight;
+  }
+</script>
+</body>
+</html>

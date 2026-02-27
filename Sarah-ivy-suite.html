@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ivy Suite — Sarah · Lighthouse Workshop</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange:   #F26419;
+  --orange-l: #FEE8D6;
+  --cream:    #FEF6EE;
+  --ink:      #1A1A1A;
+  --ink2:     #4A4A4A;
+  --ink3:     #888888;
+  --card:     #FFFFFF;
+  --border:   #EDE8E3;
+  --green:    #16A34A;
+  --radius:   12px;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+}
+
+/* ── Shell ── */
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 56px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.logo-mark {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: var(--orange);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 14px; color: #fff;
+}
+.logo-text { font-size: 13px; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+
+.sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+
+.suite-name {
+  font-size: 13px; font-weight: 600; color: var(--ink2);
+}
+
+/* ── Tabs ── */
+.tabs {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all .15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.tab:hover {
+  background: var(--orange-l);
+  color: var(--orange);
+}
+.tab.active {
+  background: var(--orange);
+  color: #fff;
+  border-color: var(--orange);
+}
+.tab-icon { font-size: 14px; line-height: 1; }
+
+/* Author chip */
+.author-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+.author-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--orange);
+  color: #fff; font-size: 10px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.author-name { font-size: 11.5px; color: var(--ink3); font-weight: 500; }
+
+/* ── Tab label strip ── */
+.tab-meta {
+  background: var(--cream);
+  border-bottom: 1px solid var(--border);
+  padding: 7px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.tab-meta-icon { font-size: 15px; }
+.tab-meta-title { font-size: 12px; font-weight: 700; color: var(--ink); }
+.tab-meta-desc { font-size: 11.5px; color: var(--ink3); }
+.tab-meta-pill {
+  margin-left: auto;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 9px; border-radius: 20px;
+  background: var(--orange-l); color: var(--orange);
+}
+
+/* ── Frame area ── */
+.frame-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.frame-panel {
+  position: absolute;
+  inset: 0;
+  border: none;
+  display: none;
+}
+.frame-panel.active {
+  display: block;
+}
+
+iframe.frame-panel {
+  width: 100%;
+  height: 100%;
+}
+
+/* PDF panel — browser native viewer */
+.pdf-panel {
+  width: 100%;
+  height: 100%;
+  background: #525659;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pdf-panel embed {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 680px) {
+  .suite-name { display: none; }
+  .sep        { display: none; }
+  .tab        { padding: 6px 11px; gap: 4px; font-size: 11.5px; }
+  .tab-icon   { font-size: 13px; }
+  .header     { padding: 0 14px; }
+  .tab-meta   { padding: 7px 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <a class="logo" href="#">
+      <div class="logo-mark">L</div>
+      <span class="logo-text">Lighthouse</span>
+    </a>
+    <div class="sep"></div>
+    <span class="suite-name">The Crown Hotel — Ivy Suite</span>
+
+    <nav class="tabs">
+      <div class="tab active" data-tab="whatsapp" onclick="switchTab('whatsapp', this)">
+        <span class="tab-icon">💬</span>
+        WhatsApp Briefing
+      </div>
+      <div class="tab" data-tab="dashboard" onclick="switchTab('dashboard', this)">
+        <span class="tab-icon">📊</span>
+        Command Center
+      </div>
+      <div class="tab" data-tab="report" onclick="switchTab('report', this)">
+        <span class="tab-icon">📄</span>
+        Weekly Report
+      </div>
+    </nav>
+
+    <div class="author-chip">
+      <div class="author-avatar">S</div>
+      <span class="author-name">Sarah</span>
+    </div>
+  </header>
+
+  <!-- ── Tab meta strip ── -->
+  <div class="tab-meta" id="tabMeta">
+    <span class="tab-meta-icon">💬</span>
+    <span class="tab-meta-title">WhatsApp Briefing</span>
+    <span class="tab-meta-desc">Monday morning delivery via WhatsApp — natural language Q&amp;A with Ivy</span>
+    <span class="tab-meta-pill">Mockup</span>
+  </div>
+
+  <!-- ── Content ── -->
+  <div class="frame-area">
+
+    <iframe
+      id="tab-whatsapp"
+      class="frame-panel active"
+      src="whatsapp_mockup.html"
+      title="WhatsApp Briefing"
+      loading="eager">
+    </iframe>
+
+    <iframe
+      id="tab-dashboard"
+      class="frame-panel"
+      src=""
+      data-src="ivy_dashboard.html"
+      title="Ivy Command Center"
+      loading="lazy">
+    </iframe>
+
+    <div id="tab-report" class="frame-panel">
+      <div class="pdf-panel">
+        <embed src="Weekly_Report_Crown_Hotel_v2.pdf" type="application/pdf">
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+const TAB_META = {
+  whatsapp:  {
+    icon:  '💬',
+    title: 'WhatsApp Briefing',
+    desc:  'Monday morning delivery via WhatsApp — natural language Q&A with Ivy',
+    pill:  'Mockup',
+  },
+  dashboard: {
+    icon:  '📊',
+    title: 'Ivy Command Center',
+    desc:  'Interactive performance dashboard with live charts and an AI chat assistant',
+    pill:  'Interactive',
+  },
+  report: {
+    icon:  '📄',
+    title: 'Weekly GM Report',
+    desc:  'Auto-generated two-page PDF report in the Lighthouse brand style',
+    pill:  'PDF',
+  },
+};
+
+function switchTab(id, btn) {
+  // Update tab buttons
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Update panels
+  document.querySelectorAll('.frame-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('tab-' + id);
+  panel.classList.add('active');
+
+  // Lazy-load iframes on first activation
+  if (panel.tagName === 'IFRAME' && panel.dataset.src) {
+    panel.src = panel.dataset.src;
+    delete panel.dataset.src;
+  }
+
+  // Update meta strip
+  const meta = TAB_META[id];
+  const strip = document.getElementById('tabMeta');
+  strip.querySelector('.tab-meta-icon').textContent  = meta.icon;
+  strip.querySelector('.tab-meta-title').textContent = meta.title;
+  strip.querySelector('.tab-meta-desc').textContent  = meta.desc;
+  strip.querySelector('.tab-meta-pill').textContent  = meta.pill;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservation Manager – Reporting Agent PoC</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      background: #F4F5F7;
+      color: #1A1A2E;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ────────────────────────────────────────────── */
+    .sidebar {
+      width: 60px;
+      background: #1C1D2B;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      width: 36px; height: 36px;
+      background: #E84E1B;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .sidebar-logo svg { width: 20px; height: 20px; }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; width: 100%; padding: 0 8px; }
+    .nav-item {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #8B8FA8;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-item.active { background: rgba(232,78,27,0.15); color: #E84E1B; }
+    .nav-item svg { width: 18px; height: 18px; }
+    .nav-item .tooltip {
+      position: absolute;
+      left: calc(100% + 12px);
+      background: #2D2E40;
+      color: #fff;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      z-index: 999;
+    }
+    .nav-item:hover .tooltip { opacity: 1; }
+    .sidebar-bottom { display: flex; flex-direction: column; gap: 2px; padding: 0 8px; }
+
+    /* ── MAIN ───────────────────────────────────────────────── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+    /* ── TOP BAR ────────────────────────────────────────────── */
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #E5E7EB;
+      display: flex; align-items: center;
+      padding: 0 16px;
+      height: 48px;
+      flex-shrink: 0;
+      gap: 0;
+    }
+    .tab {
+      padding: 0 14px;
+      height: 48px;
+      display: flex; align-items: center;
+      font-size: 13px; font-weight: 500;
+      color: #6B7280;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      white-space: nowrap;
+      gap: 5px;
+    }
+    .tab:hover { color: #1A1A2E; }
+    .tab.active { color: #E84E1B; border-bottom-color: #E84E1B; }
+    .tab-dot {
+      width: 6px; height: 6px;
+      background: #E84E1B; border-radius: 50%;
+    }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .search-box {
+      display: flex; align-items: center; gap: 6px;
+      background: #F4F5F7;
+      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      padding: 0 10px;
+      height: 32px;
+      font-size: 12px; color: #9CA3AF;
+      cursor: pointer; width: 190px;
+    }
+    .btn-primary {
+      background: #E84E1B; color: white;
+      border: none; border-radius: 6px;
+      padding: 0 14px; height: 32px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #D44218; }
+    .btn-agent {
+      background: linear-gradient(135deg, #7C6FFF 0%, #5046E5 100%);
+      color: white;
+      border: none; border-radius: 6px;
+      padding: 0 14px; height: 32px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(80,70,229,0.3);
+      position: relative;
+    }
+    .btn-agent:hover { box-shadow: 0 4px 14px rgba(80,70,229,0.45); transform: translateY(-1px); }
+    .btn-agent.active { background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%); transform: none; }
+    .agent-badge {
+      position: absolute;
+      top: -4px; right: -4px;
+      width: 8px; height: 8px;
+      background: #22C55E;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+    .avatar {
+      width: 32px; height: 32px;
+      background: #E84E1B; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      color: white; cursor: pointer;
+    }
+    .property-label {
+      font-size: 12px; color: #6B7280; font-weight: 500;
+      padding: 0 4px; border-left: 1px solid #E5E7EB; margin-left: 4px;
+      padding-left: 12px; white-space: nowrap;
+    }
+
+    /* ── SECONDARY BAR ──────────────────────────────────────── */
+    .secondbar {
+      background: #fff;
+      border-bottom: 1px solid #E5E7EB;
+      display: flex; align-items: center;
+      padding: 0 16px;
+      height: 40px;
+      flex-shrink: 0;
+      gap: 6px;
+    }
+    .date-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: #F4F5F7;
+      border: 1px solid #E5E7EB;
+      border-radius: 5px;
+      padding: 0 10px; height: 28px;
+      font-size: 12px; font-weight: 500; color: #374151;
+      cursor: pointer;
+    }
+    .date-chip.active { background: #FFF3EF; border-color: #E84E1B; color: #E84E1B; }
+    .nav-btn {
+      width: 28px; height: 28px;
+      border: 1px solid #E5E7EB; background: #fff;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #6B7280; font-size: 12px;
+      transition: all 0.15s;
+    }
+    .nav-btn:hover { background: #F4F5F7; color: #1A1A2E; }
+    .today-btn {
+      height: 28px; padding: 0 10px;
+      border: 1px solid #E5E7EB; background: #fff;
+      border-radius: 5px; font-size: 12px; font-weight: 500;
+      cursor: pointer; color: #374151; transition: all 0.15s;
+      font-family: inherit;
+    }
+    .today-btn:hover { background: #F4F5F7; }
+    .avail-chip {
+      height: 28px; padding: 0 10px;
+      border: 1px solid #E5E7EB; background: #fff;
+      border-radius: 5px; font-size: 12px; color: #6B7280;
+      display: flex; align-items: center;
+    }
+    .secondbar-right { margin-left: auto; display: flex; gap: 6px; }
+
+    /* ── PLANBOARD ──────────────────────────────────────────── */
+    .content { flex: 1; overflow: auto; display: flex; flex-direction: column; }
+    .no-room-banner {
+      background: #fff; border-bottom: 1px solid #E5E7EB;
+      padding: 7px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; color: #6B7280;
+      flex-shrink: 0;
+    }
+    .no-room-count { display: flex; align-items: center; gap: 6px; }
+    .auto-place-link {
+      color: #7C6FFF; font-size: 12px; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .planboard-grid { flex: 1; overflow: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 900px; }
+    thead tr { background: #fff; position: sticky; top: 0; z-index: 10; }
+    th {
+      font-size: 11px; font-weight: 600; color: #6B7280;
+      text-align: center;
+      border-bottom: 1px solid #E5E7EB;
+      border-right: 1px solid #F0F0F0;
+      padding: 8px 4px; white-space: nowrap;
+    }
+    th.room-col { text-align: left; padding-left: 16px; width: 200px; min-width: 180px; }
+    th .day-label { font-size: 10px; color: #9CA3AF; margin-bottom: 2px; }
+    th .day-num { font-size: 20px; font-weight: 800; color: #1A1A2E; line-height: 1; }
+    th .avail-num { font-size: 11px; color: #9CA3AF; margin-top: 1px; }
+    th.today-col { background: #FFFBF5; }
+    th.today-col .day-num { color: #E84E1B; }
+    th.today-col .day-label { color: #E84E1B; font-weight: 600; }
+    tr.category-row td {
+      background: #F4F5F7;
+      padding: 5px 16px;
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: #6B7280; cursor: pointer;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    tr.room-row td { border-bottom: 1px solid #F0F0F0; border-right: 1px solid #F0F0F0; height: 32px; }
+    td.room-name {
+      padding: 0 8px 0 16px; font-size: 12px; font-weight: 500; color: #374151;
+      white-space: nowrap; background: #fff;
+      position: sticky; left: 0; z-index: 5;
+    }
+    .room-icons { display: inline-flex; gap: 3px; margin-left: 6px; align-items: center; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dot-red { background: #EF4444; }
+    .dot-orange { background: #F59E0B; }
+    .dot-blue { background: #3B82F6; }
+    .dot-green { background: #22C55E; }
+    .icon-txt { font-size: 10px; color: #C4C9D4; }
+    td.day-cell { background: #FAFAFA; cursor: pointer; }
+    td.day-cell:hover { background: #F0F4FF; }
+    td.today-cell { background: #FFFBF5; }
+    td.today-cell:hover { background: #FEF0E7; }
+
+    /* ── AGENT PANEL ────────────────────────────────────────── */
+    .agent-overlay {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 490px;
+      background: #fff;
+      box-shadow: -6px 0 32px rgba(0,0,0,0.1);
+      z-index: 200;
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .agent-overlay.open { transform: translateX(0); }
+
+    /* Header */
+    .agent-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #E5E7EB;
+      display: flex; align-items: center; gap: 12px;
+      background: linear-gradient(135deg, #F5F3FF 0%, #EEF2FF 100%);
+      flex-shrink: 0;
+    }
+    .agent-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #7C6FFF, #5046E5);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .agent-title { font-size: 14px; font-weight: 700; color: #1A1A2E; }
+    .agent-subtitle { font-size: 11px; color: #8B8FA8; margin-top: 1px; }
+    .agent-close {
+      margin-left: auto;
+      width: 30px; height: 30px;
+      border: none; background: rgba(0,0,0,0.06);
+      border-radius: 6px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #6B7280; transition: all 0.15s;
+    }
+    .agent-close:hover { background: rgba(0,0,0,0.12); color: #1A1A2E; }
+
+    /* KPI section */
+    .kpi-section { padding: 14px 16px; border-bottom: 1px solid #E5E7EB; flex-shrink: 0; }
+    .section-label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #9CA3AF; margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .section-label-action {
+      font-size: 10px; font-weight: 600; color: #7C6FFF;
+      cursor: pointer; letter-spacing: 0; text-transform: none;
+    }
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .kpi-card {
+      background: #F9FAFB; border: 1px solid #E5E7EB;
+      border-radius: 8px; padding: 10px 11px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .kpi-card:hover { border-color: #7C6FFF; background: #F5F3FF; box-shadow: 0 2px 8px rgba(108,99,255,0.1); }
+    .kpi-value { font-size: 20px; font-weight: 800; color: #1A1A2E; line-height: 1; }
+    .kpi-value span { font-size: 13px; font-weight: 600; }
+    .kpi-label { font-size: 10px; color: #6B7280; margin-top: 3px; line-height: 1.3; }
+    .kpi-delta { font-size: 10px; font-weight: 600; margin-top: 4px; display: flex; align-items: center; gap: 2px; }
+    .delta-up { color: #22C55E; }
+    .delta-down { color: #EF4444; }
+    .delta-neutral { color: #9CA3AF; }
+
+    /* KPI date picker */
+    .kpi-datepicker-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .kpi-date-input {
+      flex: 1;
+      background: #F9FAFB; border: 1.5px solid #E5E7EB;
+      border-radius: 6px; padding: 0 10px;
+      font-size: 12px; font-weight: 500; color: #374151;
+      cursor: pointer; font-family: inherit;
+      height: 28px; outline: none;
+      transition: all 0.15s;
+    }
+    .kpi-date-input:hover, .kpi-date-input:focus { border-color: #7C6FFF; background: #fff; }
+    .kpi-today-btn {
+      height: 28px; padding: 0 9px;
+      border: 1.5px solid #E5E7EB; background: #fff;
+      border-radius: 6px; font-size: 11px; font-weight: 600;
+      cursor: pointer; color: #374151; transition: all 0.15s;
+      font-family: inherit; white-space: nowrap; flex-shrink: 0;
+    }
+    .kpi-today-btn:hover { border-color: #7C6FFF; color: #7C6FFF; background: #F5F3FF; }
+    .kpi-range-toggle {
+      display: flex; background: #F4F5F7;
+      border: 1.5px solid #E5E7EB; border-radius: 6px;
+      overflow: hidden; flex-shrink: 0; padding: 2px;
+    }
+    .range-btn {
+      height: 22px; padding: 0 8px;
+      border: none; background: transparent;
+      font-size: 11px; font-weight: 500; color: #6B7280;
+      cursor: pointer; transition: all 0.15s;
+      font-family: inherit; border-radius: 4px;
+    }
+    .range-btn:hover { color: #374151; }
+    .range-btn.active { background: #fff; color: #5046E5; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    /* Quick reports */
+    .quick-section { padding: 12px 16px; border-bottom: 1px solid #E5E7EB; flex-shrink: 0; }
+    .quick-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+    .quick-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: #F4F5F7; border: 1px solid #E5E7EB;
+      border-radius: 20px; padding: 5px 11px;
+      font-size: 12px; font-weight: 500; color: #374151;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .quick-chip:hover { background: #EEF2FF; border-color: #7C6FFF; color: #5046E5; }
+    .quick-chip.active { background: #EEF2FF; border-color: #7C6FFF; color: #5046E5; }
+    .quick-chip svg { width: 12px; height: 12px; }
+
+    /* Chat */
+    .chat-section {
+      flex: 1; overflow-y: auto;
+      padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .message { display: flex; flex-direction: column; gap: 3px; }
+    .message.agent { align-items: flex-start; }
+    .message.user { align-items: flex-end; }
+    .message-bubble {
+      padding: 9px 13px; border-radius: 12px;
+      font-size: 13px; line-height: 1.55; max-width: 92%;
+    }
+    .message.agent .message-bubble {
+      background: #F4F5F7; border: 1px solid #E5E7EB;
+      border-top-left-radius: 4px; color: #374151;
+    }
+    .message.user .message-bubble {
+      background: linear-gradient(135deg, #7C6FFF, #5046E5);
+      color: white; border-bottom-right-radius: 4px;
+    }
+    .message-time { font-size: 10px; color: #C4C9D4; padding: 0 4px; }
+
+    /* Report preview */
+    .report-preview {
+      background: #fff; border: 1px solid #E5E7EB;
+      border-radius: 10px; overflow: hidden;
+      max-width: 100%; margin-top: 5px;
+    }
+    .report-preview-header {
+      background: #F9FAFB; border-bottom: 1px solid #E5E7EB;
+      padding: 8px 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .report-preview-title {
+      font-size: 12px; font-weight: 600; color: #374151;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .report-actions { display: flex; gap: 5px; }
+    .btn-sm {
+      height: 24px; padding: 0 9px;
+      border-radius: 4px; font-size: 11px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 4px;
+      border: 1px solid #E5E7EB; background: #fff; color: #374151;
+      transition: all 0.15s; font-family: inherit;
+    }
+    .btn-sm:hover { background: #F4F5F7; }
+    .btn-sm.primary { background: #E84E1B; border-color: #E84E1B; color: white; }
+    .btn-sm.primary:hover { background: #D44218; }
+    .btn-sm.pms { border-color: #C4B5FD; color: #5046E5; background: #F5F3FF; }
+    .btn-sm.pms:hover { background: #EDE9FE; border-color: #A78BFA; }
+
+    /* PMS toast */
+    .pms-toast {
+      position: absolute; bottom: 76px; left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: #1A1A2E; color: #fff;
+      padding: 9px 16px; border-radius: 8px;
+      font-size: 12px; font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
+      opacity: 0; transition: opacity 0.22s, transform 0.22s;
+      pointer-events: none; white-space: nowrap;
+      z-index: 300; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .pms-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .pms-toast-dot { width: 7px; height: 7px; border-radius: 50%; background: #22C55E; flex-shrink: 0; }
+    .report-table { width: 100%; font-size: 11px; border-collapse: collapse; }
+    .report-table th {
+      background: #F9FAFB; padding: 6px 10px;
+      text-align: left; font-weight: 600; color: #6B7280;
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+      border-bottom: 1px solid #E5E7EB; position: static;
+    }
+    .report-table td { padding: 7px 10px; color: #374151; border-bottom: 1px solid #F0F0F0; }
+    .report-table tr:last-child td { border-bottom: none; }
+    .report-table tr:hover td { background: #F9FAFB; }
+    .status-badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+    .s-confirmed { background: #D1FAE5; color: #065F46; }
+    .s-pending { background: #FEF3C7; color: #92400E; }
+    .s-checkin { background: #DBEAFE; color: #1E40AF; }
+
+    /* Typing */
+    .typing-indicator {
+      display: flex; align-items: center; gap: 4px;
+      padding: 10px 14px;
+      background: #F4F5F7; border: 1px solid #E5E7EB;
+      border-radius: 12px; border-top-left-radius: 4px;
+      width: fit-content;
+    }
+    .typing-dot {
+      width: 6px; height: 6px;
+      background: #9CA3AF; border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.18s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* Input area */
+    .chat-input-area { padding: 10px 16px 14px; border-top: 1px solid #E5E7EB; background: #fff; flex-shrink: 0; }
+    .chat-input-row {
+      display: flex; align-items: flex-end; gap: 8px;
+      background: #F4F5F7; border: 1.5px solid #E5E7EB;
+      border-radius: 10px; padding: 8px 10px;
+      transition: border-color 0.15s;
+    }
+    .chat-input-row:focus-within { border-color: #7C6FFF; background: #fff; }
+    .chat-input {
+      flex: 1; border: none; background: transparent;
+      font-size: 13px; color: #1A1A2E;
+      resize: none; outline: none; font-family: inherit;
+      max-height: 80px; min-height: 20px;
+    }
+    .chat-input::placeholder { color: #9CA3AF; }
+    .send-btn {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #7C6FFF, #5046E5);
+      border: none; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+    }
+    .send-btn:hover { transform: scale(1.06); }
+    .input-hints { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .hint-chip {
+      background: transparent; border: 1px dashed #D1D5DB;
+      border-radius: 12px; padding: 3px 9px;
+      font-size: 11px; color: #9CA3AF;
+      cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+    .hint-chip:hover { border-color: #7C6FFF; color: #7C6FFF; background: #F5F3FF; border-style: solid; }
+    .clear-chat-btn {
+      margin-left: auto; flex-shrink: 0;
+      background: transparent; border: none;
+      font-size: 11px; color: #C4C9D4;
+      cursor: pointer; display: flex; align-items: center; gap: 4px;
+      font-family: inherit; padding: 3px 4px; border-radius: 4px;
+      transition: all 0.15s;
+    }
+    .clear-chat-btn:hover { color: #EF4444; background: #FEF2F2; }
+
+    /* Empty state */
+    .empty-state {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 20px; gap: 10px;
+    }
+    .empty-state-icon {
+      width: 54px; height: 54px;
+      background: linear-gradient(135deg, #F5F3FF, #EEF2FF);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .empty-state h3 { font-size: 15px; font-weight: 600; color: #374151; }
+    .empty-state p { font-size: 12px; line-height: 1.55; max-width: 260px; color: #9CA3AF; }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #C4C9D4; }
+
+    /* Pulse on btn-agent */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(124,111,255,0.5); }
+      70% { box-shadow: 0 0 0 9px rgba(124,111,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(124,111,255,0); }
+    }
+    .btn-agent.pulse { animation: pulse 2.2s infinite; }
+
+    /* ── AGENT TABS ─────────────────────────────────────────── */
+    .agent-tabs {
+      display: flex; flex-shrink: 0;
+      border-bottom: 1px solid #E5E7EB;
+      background: #fff;
+      padding: 0 16px;
+    }
+    .agent-tab {
+      display: flex; align-items: center; gap: 6px;
+      padding: 0 14px; height: 40px;
+      font-size: 12px; font-weight: 500; color: #6B7280;
+      border: none; background: transparent;
+      cursor: pointer; font-family: inherit;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .agent-tab:hover { color: #374151; }
+    .agent-tab.active { color: #5046E5; border-bottom-color: #5046E5; font-weight: 600; }
+    .agent-tab svg { opacity: 0.6; }
+    .agent-tab.active svg { opacity: 1; }
+    .tab-badge {
+      background: #E84E1B; color: #fff;
+      font-size: 9px; font-weight: 700;
+      border-radius: 10px; padding: 1px 5px;
+      min-width: 16px; text-align: center; line-height: 1.6;
+    }
+    .tab-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ── AUTOMATIONS LIST ────────────────────────────────────── */
+    .auto-list { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .auto-card {
+      background: #F9FAFB; border: 1px solid #E5E7EB;
+      border-radius: 10px; padding: 12px 14px;
+      display: flex; align-items: flex-start; gap: 12px;
+      transition: all 0.15s;
+    }
+    .auto-card:hover { border-color: #D1D5DB; background: #fff; }
+    .auto-card.disabled { opacity: 0.5; }
+    .auto-icon {
+      width: 36px; height: 36px; flex-shrink: 0;
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #F5F3FF, #EEF2FF);
+    }
+    .auto-body { flex: 1; min-width: 0; }
+    .auto-name { font-size: 13px; font-weight: 600; color: #1A1A2E; }
+    .auto-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+    .auto-schedule { font-size: 11px; color: #6B7280; display: flex; align-items: center; gap: 3px; }
+    .delivery-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600;
+    }
+    .delivery-email { background: #DBEAFE; color: #1D4ED8; }
+    .delivery-whatsapp { background: #D1FAE5; color: #065F46; }
+    .auto-recipient { font-size: 11px; color: #9CA3AF; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .auto-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .auto-delete-btn {
+      width: 26px; height: 26px; border: none; background: transparent;
+      border-radius: 5px; cursor: pointer; color: #C4C9D4;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .auto-delete-btn:hover { color: #EF4444; background: #FEF2F2; }
+
+    /* Toggle switch */
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: #E5E7EB; border-radius: 20px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .toggle-track::after {
+      content: ''; position: absolute;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; top: 3px; left: 3px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle-switch input:checked + .toggle-track { background: #22C55E; }
+    .toggle-switch input:checked + .toggle-track::after { transform: translateX(16px); }
+
+    /* Add button & form */
+    .auto-add-btn {
+      margin: 0 16px 12px; height: 36px;
+      border: 1.5px dashed #D1D5DB; background: transparent;
+      border-radius: 8px; font-size: 12px; font-weight: 500; color: #6B7280;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.15s; font-family: inherit; width: calc(100% - 32px);
+    }
+    .auto-add-btn:hover { border-color: #7C6FFF; color: #5046E5; background: #F5F3FF; }
+    .auto-form {
+      margin: 0 16px 14px;
+      background: #F5F3FF; border: 1.5px solid #C4B5FD;
+      border-radius: 10px; padding: 14px;
+      display: none; flex-direction: column; gap: 10px;
+    }
+    .auto-form.visible { display: flex; }
+    .form-row { display: flex; gap: 8px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .form-label { font-size: 10px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.06em; }
+    .form-select, .form-input {
+      height: 30px; background: #fff; border: 1.5px solid #E5E7EB;
+      border-radius: 6px; padding: 0 8px;
+      font-size: 12px; color: #374151; font-family: inherit; outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-select:focus, .form-input:focus { border-color: #7C6FFF; }
+    .delivery-toggle {
+      display: flex; background: #fff; border: 1.5px solid #E5E7EB;
+      border-radius: 6px; overflow: hidden; height: 30px;
+    }
+    .delivery-opt {
+      flex: 1; border: none; background: transparent;
+      font-size: 11px; font-weight: 500; color: #6B7280;
+      cursor: pointer; transition: all 0.15s; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .delivery-opt.active { background: #5046E5; color: #fff; font-weight: 600; }
+    .form-actions { display: flex; gap: 6px; margin-top: 2px; }
+    .btn-save-auto {
+      flex: 1; height: 32px;
+      background: linear-gradient(135deg, #7C6FFF, #5046E5); color: #fff;
+      border: none; border-radius: 6px; font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: opacity 0.15s;
+    }
+    .btn-save-auto:hover { opacity: 0.9; }
+    .btn-cancel-auto {
+      height: 32px; padding: 0 12px;
+      background: #fff; border: 1.5px solid #E5E7EB; color: #6B7280;
+      border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit;
+      transition: all 0.15s;
+    }
+    .btn-cancel-auto:hover { border-color: #9CA3AF; }
+
+    /* ── WATCH TAB ───────────────────────────────────────────── */
+    .tab-badge.watch-badge { background: #EF4444; }
+    .watch-header { padding: 10px 16px; border-bottom: 1px solid #E5E7EB; background: #fff; flex-shrink: 0; }
+    .watch-header-row { display: flex; align-items: center; gap: 8px; }
+    .watch-live-dot {
+      width: 8px; height: 8px; background: #22C55E; border-radius: 50%; flex-shrink: 0;
+      animation: livePulse 2.4s ease-in-out infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+      50%       { opacity: 0.75; box-shadow: 0 0 0 5px rgba(34,197,94,0); }
+    }
+    .watch-title { font-size: 12px; font-weight: 600; color: #374151; flex: 1; }
+    .scan-btn {
+      height: 26px; padding: 0 10px; border: 1px solid #E5E7EB; background: #fff;
+      border-radius: 5px; font-size: 11px; font-weight: 500; color: #6B7280;
+      cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 4px; transition: all 0.15s;
+    }
+    .scan-btn:hover { border-color: #7C6FFF; color: #5046E5; }
+    .scan-btn svg { transition: transform 0.3s; }
+    .scan-btn.scanning svg { animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .watch-sub { font-size: 11px; color: #9CA3AF; margin-top: 4px; }
+    .watch-sub strong { color: #374151; }
+    .issues-list { flex: 1; overflow-y: auto; padding: 10px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .issue-card {
+      border: 1px solid #E5E7EB; border-left: 3px solid #D1D5DB;
+      border-radius: 8px; background: #fff; padding: 11px 12px; transition: box-shadow 0.15s, opacity 0.35s;
+    }
+    .issue-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    .issue-card.sev-critical { border-left-color: #EF4444; }
+    .issue-card.sev-warning  { border-left-color: #F59E0B; }
+    .issue-card.sev-info     { border-left-color: #3B82F6; }
+    .issue-card.resolved     { opacity: 0.3; pointer-events: none; }
+    .issue-top    { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 5px; }
+    .issue-cat    {
+      display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 10px;
+      font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; margin-top: 1px;
+    }
+    .cat-revenue     { background: #FEF3C7; color: #92400E; }
+    .cat-compliance  { background: #FEE2E2; color: #991B1B; }
+    .cat-operational { background: #DBEAFE; color: #1E40AF; }
+    .cat-anomaly     { background: #F3F4F6; color: #374151; }
+    .issue-title  { font-size: 13px; font-weight: 600; color: #1A1A2E; flex: 1; line-height: 1.35; }
+    .issue-reason { font-size: 11px; color: #6B7280; line-height: 1.6; margin-bottom: 6px; }
+    .issue-detail { font-size: 10px; color: #9CA3AF; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+    .issue-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .btn-investigate {
+      display: flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px;
+      background: linear-gradient(135deg, #F5F3FF, #EEF2FF); border: 1px solid #C4B5FD;
+      border-radius: 5px; font-size: 11px; font-weight: 600; color: #5046E5;
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .btn-investigate:hover { background: #EDE9FE; }
+    .btn-assign {
+      display: flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px;
+      background: #fff; border: 1px solid #E5E7EB; border-radius: 5px;
+      font-size: 11px; font-weight: 500; color: #374151;
+      cursor: pointer; font-family: inherit; transition: all 0.15s; position: relative;
+    }
+    .btn-assign:hover { border-color: #9CA3AF; }
+    .btn-resolve {
+      margin-left: auto; display: flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px;
+      background: transparent; border: 1px solid #E5E7EB; border-radius: 5px;
+      font-size: 11px; color: #9CA3AF; cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .btn-resolve:hover { border-color: #22C55E; color: #22C55E; background: #F0FDF4; }
+    .assign-popover {
+      position: absolute; top: calc(100% + 4px); left: 0; z-index: 200;
+      background: #fff; border: 1px solid #E5E7EB; border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1); min-width: 160px; padding: 4px; display: none;
+    }
+    .assign-popover.open { display: block; }
+    .assign-option {
+      display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+      border-radius: 5px; font-size: 12px; color: #374151; cursor: pointer; transition: background 0.1s;
+    }
+    .assign-option:hover { background: #F5F3FF; }
+    .assign-avatar {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .assigned-badge {
+      display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px;
+      background: #F0FDF4; border: 1px solid #BBF7D0;
+      border-radius: 10px; font-size: 10px; font-weight: 600; color: #065F46;
+    }
+
+    /* ── PMS FULL-SCREEN OVERLAY ─────────────────────────────── */
+    .pms-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: #F4F5F7; display: flex; flex-direction: column;
+      opacity: 0; transform: translateY(14px);
+      transition: opacity 0.22s, transform 0.22s; pointer-events: none;
+    }
+    .pms-overlay.open { opacity: 1; transform: translateY(0); pointer-events: all; }
+
+    .pms-topbar {
+      background: #fff; border-bottom: 1px solid #E5E7EB;
+      height: 54px; flex-shrink: 0;
+      display: flex; align-items: center; padding: 0 20px; gap: 12px;
+    }
+    .pms-logo {
+      width: 30px; height: 30px; background: #E84E1B; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .pms-back {
+      display: flex; align-items: center; gap: 5px;
+      height: 30px; padding: 0 10px;
+      border: 1px solid #E5E7EB; background: #fff; border-radius: 6px;
+      font-size: 12px; font-weight: 500; color: #374151;
+      cursor: pointer; font-family: inherit; transition: all 0.15s; flex-shrink: 0;
+    }
+    .pms-back:hover { background: #F4F5F7; }
+    .pms-topbar-title { font-size: 15px; font-weight: 700; color: #1A1A2E; }
+    .pms-topbar-meta  { font-size: 12px; color: #9CA3AF; }
+    .pms-topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+    .pms-stats-bar {
+      background: #fff; border-bottom: 1px solid #E5E7EB;
+      padding: 13px 24px; flex-shrink: 0; display: flex; align-items: center; gap: 28px;
+    }
+    .pms-stat { display: flex; flex-direction: column; gap: 2px; }
+    .pms-stat-val { font-size: 22px; font-weight: 800; color: #1A1A2E; line-height: 1; }
+    .pms-stat-lbl { font-size: 11px; color: #6B7280; font-weight: 500; margin-top: 2px; }
+    .pms-stat-sep { width: 1px; height: 36px; background: #E5E7EB; flex-shrink: 0; }
+
+    .pms-toolbar {
+      background: #fff; border-bottom: 1px solid #E5E7EB;
+      padding: 9px 24px; flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+    }
+    .pms-search {
+      display: flex; align-items: center; gap: 7px;
+      height: 32px; padding: 0 12px; width: 220px;
+      background: #F4F5F7; border: 1px solid #E5E7EB; border-radius: 7px;
+      font-size: 12px; color: #9CA3AF; cursor: text;
+    }
+    .pms-filter-btn {
+      height: 32px; padding: 0 12px;
+      border: 1px solid #E5E7EB; background: #fff; border-radius: 7px;
+      font-size: 12px; color: #374151; cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; gap: 5px; transition: all 0.15s;
+    }
+    .pms-filter-btn:hover { background: #F4F5F7; }
+    .pms-toolbar-right { margin-left: auto; display: flex; gap: 6px; }
+
+    .pms-content { flex: 1; overflow: auto; padding: 20px 24px; }
+    .pms-table-card { background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; }
+    .pms-full-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .pms-full-table thead tr { background: #F9FAFB; }
+    .pms-full-table th {
+      padding: 11px 16px; text-align: left;
+      font-size: 11px; font-weight: 700; color: #6B7280;
+      text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #E5E7EB;
+    }
+    .pms-full-table td { padding: 13px 16px; color: #374151; border-bottom: 1px solid #F0F0F0; }
+    .pms-full-table tr:last-child td { border-bottom: none; }
+    .pms-full-table tbody tr:hover td { background: #FAFAFA; }
+    .pms-full-table td.cell-alert { color: #E84E1B; font-weight: 600; }
+    .pms-row-count { color: #C4C9D4; font-size: 11px; padding: 10px 16px; text-align: right; border-top: 1px solid #F0F0F0; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+      <path d="M2 17l10 5 10-5"/>
+      <path d="M2 12l10 5 10-5"/>
+    </svg>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="tooltip">Front desk</span></div>
+    <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="tooltip">Planboard</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="tooltip">Reservations</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span class="tooltip">Guests</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="tooltip">Companies</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span class="tooltip">Reports</span></div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg><span class="tooltip">Settings</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="tooltip">Employees</span></div>
+  </div>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="tab">Channel Manager</div>
+    <div class="tab active">Reservation Manager</div>
+    <div class="tab"><span class="tab-dot"></span>Smart Distribution</div>
+    <div class="topbar-right">
+      <div class="search-box">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Find a reservation
+      </div>
+      <button class="btn-agent pulse" id="agentBtn" onclick="toggleAgent()">
+        <div class="agent-badge"></div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="12" cy="8" r="3"/>
+          <path d="M6 20v-2a6 6 0 0112 0v2"/>
+          <path d="M9 14l-.5 3h7l-.5-3"/>
+        </svg>
+        Reporting Agent
+      </button>
+      <button class="btn-primary">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New reservation
+      </button>
+      <div class="property-label">Stardekk Hotel · BP</div>
+      <div class="avatar">XD</div>
+    </div>
+  </div>
+
+  <!-- Secondary bar -->
+  <div class="secondbar">
+    <div class="date-chip">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      09 Mar 2026
+    </div>
+    <div class="date-chip active">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      16 Mar 2026
+    </div>
+    <div class="nav-btn">«</div>
+    <div class="nav-btn">‹</div>
+    <button class="today-btn">Today</button>
+    <div class="nav-btn">›</div>
+    <div class="nav-btn">»</div>
+    <div class="avail-chip">Availability</div>
+    <div class="secondbar-right">
+      <div class="nav-btn" title="Display settings">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </div>
+      <div class="nav-btn" title="Filter">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      </div>
+      <div class="nav-btn" title="Zoom in">+</div>
+      <div class="nav-btn" title="Expand">⇔</div>
+      <div class="nav-btn" title="More">···</div>
+    </div>
+  </div>
+
+  <!-- No-room banner -->
+  <div class="no-room-banner">
+    <div class="no-room-count">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      Reservations without room (3)
+    </div>
+    <span class="auto-place-link">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Automatically place all reservations…
+    </span>
+  </div>
+
+  <!-- Planboard -->
+  <div class="planboard-grid">
+    <table>
+      <thead>
+        <tr>
+          <th class="room-col">Availability <span style="color:#C4C9D4;font-size:11px;cursor:pointer;">⚙</span></th>
+          <th><div class="day-label">Sun 08 Mar</div><div class="day-num">08</div><div class="avail-num">23</div></th>
+          <th class="today-col"><div class="day-label">▲ Mon 09 Mar</div><div class="day-num">09</div><div class="avail-num">23</div></th>
+          <th><div class="day-label">Tue 10 Mar</div><div class="day-num">10</div><div class="avail-num">23</div></th>
+          <th><div class="day-label">Wed 11 Mar</div><div class="day-num">11</div><div class="avail-num">23</div></th>
+          <th><div class="day-label">Thu 12 Mar</div><div class="day-num">12</div><div class="avail-num">23</div></th>
+          <th><div class="day-label">Fri 13 Mar</div><div class="day-num">13</div><div class="avail-num">23</div></th>
+          <th><div class="day-label">Sat 14 Mar</div><div class="day-num">14</div><div class="avail-num">23</div></th>
+          <th><div class="day-label">Sun 15 Mar</div><div class="day-num">15</div><div class="avail-num">23</div></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="category-row"><td colspan="9">▾ Single Rooms</td></tr>
+        <tr class="room-row">
+          <td class="room-name">SINGLE 01<span class="room-icons"><span class="dot dot-blue"></span><span class="dot dot-red"></span><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">SINGLE 02<span class="room-icons"><span class="dot dot-red"></span><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">SINGLE 03<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="category-row"><td colspan="9">▾ First floor</td></tr>
+        <tr class="room-row">
+          <td class="room-name">DOUBLE 04<span class="room-icons"><span class="icon-txt">🔧 ✓</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">DOUBLE 05<span class="room-icons"><span class="icon-txt">🔧 ✓</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">DOUBLE 06<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">DOUBLE 07<span class="room-icons"><span class="dot dot-red"></span><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">DOUBLE 08<span class="room-icons"><span class="dot dot-blue"></span><span class="dot dot-red"></span><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">DOUBLE 09<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">DOUBLE 10<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">DOUBLE 11<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="category-row"><td colspan="9">▾ Triple Rooms</td></tr>
+        <tr class="room-row">
+          <td class="room-name">TRIPLE 12<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">TRIPLE 13<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">TRIPLE 14<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="category-row"><td colspan="9">▾ Junior Suites</td></tr>
+        <tr class="room-row">
+          <td class="room-name">SUITE 15<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">SUITE 16<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">SUITE 17<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">SUITE 18<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">SUITE 19<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">SUITE 20<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+        <tr class="room-row">
+          <td class="room-name">SUITE 21<span class="room-icons"><span class="icon-txt">🔧 ✕</span></span></td>
+          <td class="day-cell"></td><td class="today-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td><td class="day-cell"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ═══════════════ REPORTING AGENT PANEL ═══════════════ -->
+<div class="agent-overlay" id="agentPanel">
+
+  <!-- Header -->
+  <div class="agent-header">
+    <div class="agent-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <circle cx="12" cy="8" r="3"/>
+        <path d="M6 20v-2a6 6 0 0112 0v2"/>
+        <path d="M9 14l-.5 3h7l-.5-3"/>
+      </svg>
+    </div>
+    <div>
+      <div class="agent-title">Reporting Agent</div>
+      <div class="agent-subtitle">AI-powered insights · Stardekk Hotel</div>
+    </div>
+    <button class="agent-close" onclick="toggleAgent()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Agent tab bar -->
+  <div class="agent-tabs">
+    <button class="agent-tab active" id="tabChat" onclick="switchAgentTab('chat')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      Chat
+    </button>
+    <button class="agent-tab" id="tabAutomations" onclick="switchAgentTab('automations')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Automations
+      <span class="tab-badge" id="autoBadge">3</span>
+    </button>
+    <button class="agent-tab" id="tabWatch" onclick="switchAgentTab('watch')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Watch
+      <span class="tab-badge watch-badge" id="watchBadge">6</span>
+    </button>
+  </div>
+
+  <!-- Chat panel -->
+  <div class="tab-panel" id="chatPanel">
+
+  <!-- KPIs -->
+  <div class="kpi-section">
+    <div class="kpi-datepicker-row">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <input type="date" class="kpi-date-input" id="kpiDateInput" value="2026-03-09" onchange="updateKPIsForDate(this.value)">
+      <button class="kpi-today-btn" onclick="jumpToToday()">Today</button>
+      <div class="kpi-range-toggle">
+        <button class="range-btn active" id="rangeDay"   onclick="setRange('day')">Day</button>
+        <button class="range-btn"        id="rangeWeek"  onclick="setRange('week')">Week</button>
+        <button class="range-btn"        id="rangeMonth" onclick="setRange('month')">Month</button>
+      </div>
+    </div>
+    <div class="section-label" id="kpiSectionLabel">
+      Group KPIs · Mon 09 Mar 2026
+      <span class="section-label-action">Configure ⚙</span>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card" onclick="askKPI('occupancy')">
+        <div class="kpi-value" id="kpi-occupancy-val">82<span>%</span></div>
+        <div class="kpi-label">Occupancy</div>
+        <div class="kpi-delta delta-up" id="kpi-occupancy-delta">↑ +4% vs last week</div>
+      </div>
+      <div class="kpi-card" onclick="askKPI('arrivals')">
+        <div class="kpi-value" id="kpi-arrivals-val">14</div>
+        <div class="kpi-label">Arrivals today</div>
+        <div class="kpi-delta delta-neutral" id="kpi-arrivals-delta">→ same as avg</div>
+      </div>
+      <div class="kpi-card" onclick="askKPI('departures')">
+        <div class="kpi-value" id="kpi-departures-val">9</div>
+        <div class="kpi-label">Departures</div>
+        <div class="kpi-delta delta-down" id="kpi-departures-delta">↓ -2 vs yesterday</div>
+      </div>
+      <div class="kpi-card" onclick="askKPI('adr')">
+        <div class="kpi-value" id="kpi-adr-val"><span>€</span>148</div>
+        <div class="kpi-label">Avg. Daily Rate</div>
+        <div class="kpi-delta delta-up" id="kpi-adr-delta">↑ +€6 vs last week</div>
+      </div>
+      <div class="kpi-card" onclick="askKPI('breakfast')">
+        <div class="kpi-value" id="kpi-breakfast-val">31</div>
+        <div class="kpi-label">Breakfast covers</div>
+        <div class="kpi-delta delta-up" id="kpi-breakfast-delta">↑ +5 vs yesterday</div>
+      </div>
+      <div class="kpi-card" onclick="askKPI('revenue')">
+        <div class="kpi-value" id="kpi-revenue-val"><span>€</span>4.2k</div>
+        <div class="kpi-label">Revenue today</div>
+        <div class="kpi-delta delta-up" id="kpi-revenue-delta">↑ +8% vs last Mon</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Reports -->
+  <div class="quick-section">
+    <div class="section-label">Quick Reports</div>
+    <div class="quick-grid">
+      <div class="quick-chip" id="chip-arrivals" onclick="runQuickReport('arrivals', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Arrival list
+      </div>
+      <div class="quick-chip" id="chip-departures" onclick="runQuickReport('departures', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Departure list
+      </div>
+      <div class="quick-chip" id="chip-breakfast" onclick="runQuickReport('breakfast', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Breakfast list
+      </div>
+      <div class="quick-chip" id="chip-occupancy" onclick="runQuickReport('occupancy', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Occupancy
+      </div>
+      <div class="quick-chip" id="chip-payments" onclick="runQuickReport('payments', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payments
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-section" id="chatSection">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-state-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7C6FFF" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <h3>Ask me anything</h3>
+      <p>Request any report, compare across dates, or ask for specific guest or revenue information.</p>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input-area">
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chatInput" rows="1"
+        placeholder="e.g. "Show arrivals for this weekend"…"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)"></textarea>
+      <button class="send-btn" onclick="sendMessage()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <div class="input-hints">
+      <span class="hint-chip" onclick="insertHint('VIP arrivals this week')">VIP arrivals this week</span>
+      <span class="hint-chip" onclick="insertHint('Revenue by room type for March')">Revenue by room type</span>
+      <span class="hint-chip" onclick="insertHint('Which rooms have open balances?')">Open balances</span>
+      <button class="clear-chat-btn" id="clearChatBtn" onclick="clearChat()" style="display:none;">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Clear chat
+      </button>
+    </div>
+  </div>
+
+  </div><!-- /chatPanel -->
+
+  <!-- Automations panel -->
+  <div class="tab-panel" id="automationsPanel" style="display:none;">
+    <div id="automationsContent" style="display:flex;flex-direction:column;flex:1;overflow:hidden;"></div>
+  </div>
+
+  <!-- PMS toast -->
+  <div class="pms-toast" id="pmsToast"></div>
+
+  <!-- Watch panel -->
+  <div class="tab-panel" id="watchPanel" style="display:none;">
+    <div id="watchContent" style="display:flex;flex-direction:column;flex:1;overflow:hidden;"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ PMS OVERLAY ═══════════════ -->
+<div class="pms-overlay" id="pmsOverlay">
+
+  <!-- Top bar -->
+  <div class="pms-topbar">
+    <div class="pms-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" width="15" height="15">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <button class="pms-back" onclick="closePMSOverlay()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Agent
+    </button>
+    <div>
+      <span class="pms-topbar-title" id="pmsTitle">Report</span>
+      <span class="pms-topbar-meta" id="pmsDateLabel"></span>
+    </div>
+    <div class="pms-topbar-right">
+      <span style="font-size:12px;color:#9CA3AF;padding-right:10px;border-right:1px solid #E5E7EB;">Stardekk Hotel · BP</span>
+      <div style="width:30px;height:30px;background:#E84E1B;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">XD</div>
+      <button onclick="closePMSOverlay()" style="width:30px;height:30px;border:1px solid #E5E7EB;background:#fff;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6B7280;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='#F4F5F7'" onmouseout="this.style.background='#fff'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="pms-stats-bar" id="pmsStatsBar"></div>
+
+  <!-- Toolbar -->
+  <div class="pms-toolbar">
+    <div class="pms-search">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search…
+    </div>
+    <button class="pms-filter-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Filter
+    </button>
+    <button class="pms-filter-btn">All statuses ▾</button>
+    <div class="pms-toolbar-right">
+      <button class="btn-sm">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+      <button class="btn-sm primary">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="pms-content">
+    <div class="pms-table-card" id="pmsTableWrap"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ SCRIPT ═══════════════ -->
+<script>
+  let agentOpen = false;
+
+  function toggleAgent() {
+    agentOpen = !agentOpen;
+    const panel = document.getElementById('agentPanel');
+    const btn   = document.getElementById('agentBtn');
+    if (agentOpen) {
+      panel.classList.add('open');
+      btn.classList.add('active');
+      btn.classList.remove('pulse');
+    } else {
+      panel.classList.remove('open');
+      btn.classList.remove('active');
+      setTimeout(() => btn.classList.add('pulse'), 400);
+    }
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+  }
+
+  function clearChat() {
+    const s = document.getElementById('chatSection');
+    s.innerHTML = `
+      <div class="empty-state" id="emptyState">
+        <div class="empty-state-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7C6FFF" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <h3>Ask me anything</h3>
+        <p>Request any report, compare across dates, or ask for specific guest or revenue information.</p>
+      </div>`;
+    document.getElementById('clearChatBtn').style.display = 'none';
+  }
+
+  function insertHint(text) {
+    const input = document.getElementById('chatInput');
+    input.value = text;
+    input.focus();
+    autoResize(input);
+  }
+
+  // ── Report data ──────────────────────────────────────────────
+  const REPORTS = {
+    arrivals: {
+      title: 'Arrival List · Mon 09 Mar 2026',
+      summary: 'I found **7 arrivals** for today. 2 guests are already checked in. Note that Williams, S. (TRIPLE 13) still has a **pending prepayment** — worth a follow-up.',
+      cols: ['Guest', 'Room', 'Board', 'Nights', 'Pax', 'Status'],
+      rows: [
+        ['De Smedt, J.', 'SUITE 15', 'B&B', '3', '2', 'confirmed'],
+        ['Müller, K.', 'DOUBLE 07', 'HB', '2', '1', 'checkin'],
+        ['Nguyen, L.', 'SINGLE 02', 'RO', '1', '1', 'confirmed'],
+        ['Janssen, P.', 'DOUBLE 10', 'B&B', '4', '3', 'confirmed'],
+        ['Williams, S.', 'TRIPLE 13', 'HB', '2', '2', 'pending'],
+        ['Rossi, M.', 'SUITE 18', 'B&B', '5', '2', 'confirmed'],
+        ['Peeters, A.', 'DOUBLE 05', 'RO', '2', '1', 'checkin'],
+      ]
+    },
+    departures: {
+      title: 'Departure List · Mon 09 Mar 2026',
+      summary: 'Here are **5 departures** for today. I see **2 open folios** (Claes — €62 and Martin — €120) totalling **€182 outstanding** before check-out.',
+      cols: ['Guest', 'Room', 'Check-out', 'Folio', 'Balance', 'Status'],
+      rows: [
+        ['Van den Berg, R.', 'SUITE 16', '11:00', 'FOL-0441', '€ 0.00', 'confirmed'],
+        ['Claes, N.', 'DOUBLE 04', '10:00', 'FOL-0438', '€ 62.00', 'pending'],
+        ['Schmidt, H.', 'SINGLE 01', '12:00', 'FOL-0435', '€ 0.00', 'confirmed'],
+        ['Martin, C.', 'TRIPLE 12', '11:00', 'FOL-0432', '€ 120.00', 'pending'],
+        ['López, E.', 'DOUBLE 09', '10:30', 'FOL-0429', '€ 0.00', 'confirmed'],
+      ]
+    },
+    breakfast: {
+      title: 'Breakfast List · Mon 09 Mar 2026',
+      summary: '**9 breakfast covers** across 9 rooms this morning. I flagged **3 dietary requirements**: vegan (Suite 16), gluten-free (Double 04), and a **nut allergy** (Suite 19) — make sure kitchen is notified.',
+      cols: ['Room', 'Guest', 'Pax', 'Dietary req.', 'Pref. time', 'Status'],
+      rows: [
+        ['SUITE 15', 'De Smedt, J.', '2', '—', '08:00', 'confirmed'],
+        ['SUITE 16', 'Van den Berg, R.', '2', 'Vegan', '07:30', 'confirmed'],
+        ['DOUBLE 04', 'Claes, N.', '1', 'Gluten-free', '09:00', 'confirmed'],
+        ['DOUBLE 07', 'Müller, K.', '1', '—', '08:30', 'confirmed'],
+        ['DOUBLE 08', 'Fontaine, B.', '2', '—', '08:00', 'confirmed'],
+        ['TRIPLE 12', 'Martin, C.', '3', 'Lactose-free', '09:00', 'confirmed'],
+        ['TRIPLE 14', 'Goossens, F.', '2', '—', '07:30', 'confirmed'],
+        ['SUITE 18', 'Rossi, M.', '2', '—', '08:30', 'confirmed'],
+        ['SUITE 19', 'Adams, T.', '2', '⚠ Nut allergy', '09:00', 'confirmed'],
+      ]
+    },
+    occupancy: {
+      title: 'Occupancy Overview · Week of 09 Mar 2026',
+      summary: '**Junior Suites are fully booked** this week 🎉. Double rooms have 2 free. Overall occupancy is at **76%** with a RevPAR of **€121** — up from €114 last week.',
+      cols: ['Room Type', 'Total', 'Occupied', 'Available', 'Occ. %', 'RevPAR'],
+      rows: [
+        ['Single Rooms', '3', '1', '2', '33%', '€ 49'],
+        ['Double Rooms (1F)', '8', '6', '2', '75%', '€ 104'],
+        ['Triple Rooms', '3', '2', '1', '67%', '€ 99'],
+        ['Junior Suites', '7', '7', '0', '100%', '€ 189'],
+        ['─', '─', '─', '─', '─', '─'],
+        ['Total / Average', '21', '16', '5', '76%', '€ 121'],
+      ]
+    },
+    payments: {
+      title: 'Payments · Mon 09 Mar 2026',
+      summary: '**€788 collected** so far today across 5 transactions. FOL-0442 (De Smedt) has a **deposit pending** — amount of €50 expected before 12:00.',
+      cols: ['Folio', 'Guest', 'Amount', 'Method', 'Time', 'Status'],
+      rows: [
+        ['FOL-0441', 'Van den Berg, R.', '€ 320.00', 'Visa', '08:14', 'confirmed'],
+        ['FOL-0435', 'Schmidt, H.', '€ 95.00', 'Cash', '09:02', 'confirmed'],
+        ['FOL-0429', 'López, E.', '€ 175.00', 'Mastercard', '09:30', 'confirmed'],
+        ['FOL-0442', 'De Smedt, J.', '€ 50.00', 'Deposit', '—', 'pending'],
+        ['FOL-0444', 'Müller, K.', '€ 148.00', 'Visa', '10:18', 'confirmed'],
+      ]
+    }
+  };
+
+  const KPI_REPLIES = {
+    occupancy: 'Occupancy today is at **82%** — 17 out of 21 rooms are occupied. That\'s up 4 percentage points compared to this day last week. Junior Suites are **fully booked**. Want the full occupancy breakdown by room type?',
+    arrivals:  'You have **14 arrivals** today. 2 guests have already checked in (Müller and Peeters). The remaining 12 are expected before 18:00. Williams, S. still has an **open prepayment**.',
+    departures:'**9 departures** today. 2 have outstanding balances: Claes (€62) and Martin (€120). Check-out time for most guests is between 10:00 and 12:00.',
+    adr:       'The **Average Daily Rate** today is **€148**, up €6 compared to last week. The increase is largely driven by the Junior Suites rate floor being raised last weekend.',
+    breakfast: '**31 breakfast covers** this morning — up 5 from yesterday. 3 dietary requirements are on file. The kitchen has been notified. 1 nut allergy is flagged for Suite 19.',
+    revenue:   'Today\'s revenue stands at **€4,200** — up 8% vs the same Monday last week. The main driver is a higher ADR on suites. Projected daily revenue at full check-in is **€5,800**.',
+  };
+
+  // ── Actions ──────────────────────────────────────────────────
+  function runQuickReport(type, chip) {
+    document.getElementById('emptyState')?.remove();
+    document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    setTimeout(() => chip.classList.remove('active'), 1800);
+
+    addMessage('user', `Show me the ${type.replace('_',' ')} report for ${selectedDateLabel}`);
+    const tid = addTyping();
+    setTimeout(() => {
+      removeTyping(tid);
+      const r = { ...REPORTS[type], title: REPORTS[type].title.replace(/·.*$/, `· ${selectedDateLabel}`) };
+      addAgentReport(r.summary, r);
+    }, 700 + Math.random() * 400);
+  }
+
+  function askKPI(type) {
+    document.getElementById('emptyState')?.remove();
+    const labels = { occupancy:'occupancy', arrivals:'arrivals', departures:'departures', adr:'Average Daily Rate', breakfast:'breakfast covers', revenue:'revenue' };
+    addMessage('user', `Tell me more about the ${labels[type] || type}`);
+    const tid = addTyping();
+    setTimeout(() => {
+      removeTyping(tid);
+      addMessage('agent', KPI_REPLIES[type] || 'Here are the details for that KPI. Want me to run a full report?');
+    }, 600 + Math.random() * 400);
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    document.getElementById('emptyState')?.remove();
+    addMessage('user', text);
+    input.value = '';
+    input.style.height = 'auto';
+
+    const tid = addTyping();
+    setTimeout(() => {
+      removeTyping(tid);
+      const low = text.toLowerCase();
+      if (low.includes('arriv'))                          addAgentReport(REPORTS.arrivals.summary, REPORTS.arrivals);
+      else if (low.includes('depart') || low.includes('checkout') || low.includes('check-out')) addAgentReport(REPORTS.departures.summary, REPORTS.departures);
+      else if (low.includes('breakfast') || low.includes('cover'))  addAgentReport(REPORTS.breakfast.summary, REPORTS.breakfast);
+      else if (low.includes('occup') || low.includes('room type'))  addAgentReport(REPORTS.occupancy.summary, REPORTS.occupancy);
+      else if (low.includes('pay') || low.includes('folio') || low.includes('balanc')) addAgentReport(REPORTS.payments.summary, REPORTS.payments);
+      else if (low.includes('vip'))   addMessage('agent', 'I found **3 VIP guests** currently in-house: De Smedt (Suite 15), Rossi (Suite 18), and Van den Berg (Suite 16 — departing today). Shall I generate a detailed VIP preferences report?');
+      else if (low.includes('houseк') || low.includes('housekeep')) addMessage('agent', '**7 rooms** are currently pending housekeeping: DOUBLE 06, SINGLE 03, TRIPLE 13, TRIPLE 14, SUITE 17, SUITE 19, SUITE 20. 2 are marked priority (early arrivals). Want to export this list?');
+      else if (low.includes('revenue') || low.includes('revpar'))   addMessage('agent', REPORTS.occupancy.summary + '\n\nRevenue today is at **€4,200**. RevPAR is **€121**. Projected daily close is **€5,800** if remaining arrivals check in.');
+      else addMessage('agent', 'I can help with that! Could you clarify the **date range** or specific room type you\'d like to focus on? Or try one of the Quick Report buttons above for common daily lists.');
+    }, 700 + Math.random() * 600);
+  }
+
+  // ── Open in PMS (full-screen overlay) ────────────────────────
+  function openInPMS() {
+    const data = _openReportData;
+    if (!data) return;
+
+    // Parse title + date
+    const titleMatch = data.title.match(/^(.*?)(?:\s*·\s*(.*))?$/);
+    const reportName = (titleMatch[1] || data.title).trim();
+    const reportDate = titleMatch[2] ? '· ' + titleMatch[2].trim() : '';
+
+    document.getElementById('pmsTitle').textContent     = reportName;
+    document.getElementById('pmsDateLabel').textContent = reportDate;
+
+    // ── Compute summary stats from data ──
+    const cols       = data.cols.map(c => c.toLowerCase());
+    const statusIdx  = cols.indexOf('status');
+    const paxIdx     = cols.findIndex(c => c.includes('pax'));
+    const balanceIdx = cols.findIndex(c => c.includes('balance'));
+    const amountIdx  = cols.findIndex(c => c.includes('amount'));
+    const realRows   = data.rows.filter(r => !r.every(c => c === '─'));
+
+    const stats = [{ val: realRows.length, lbl: 'Total records' }];
+
+    if (statusIdx !== -1) {
+      const counts = {};
+      realRows.forEach(r => { const s = r[statusIdx]; counts[s] = (counts[s] || 0) + 1; });
+      const lbl = { confirmed: 'Confirmed', pending: 'Pending', checkin: 'Checked in' };
+      Object.entries(counts).forEach(([s, n]) => { if (lbl[s]) stats.push({ val: n, lbl: lbl[s] }); });
+    }
+    if (paxIdx !== -1) {
+      const total = realRows.reduce((s, r) => s + (parseInt(r[paxIdx]) || 0), 0);
+      stats.push({ val: total, lbl: 'Total guests' });
+    }
+    if (balanceIdx !== -1) {
+      const out = realRows.reduce((s, r) => {
+        const v = parseFloat(r[balanceIdx].replace(/[€\s,]/g, '')) || 0;
+        return s + (v > 0 ? v : 0);
+      }, 0);
+      if (out > 0) stats.push({ val: '€' + out.toFixed(0), lbl: 'Outstanding' });
+    }
+    if (amountIdx !== -1) {
+      const total = realRows.reduce((s, r) => s + (parseFloat(r[amountIdx].replace(/[€\s,]/g, '')) || 0), 0);
+      stats.push({ val: '€' + total.toFixed(0), lbl: 'Total collected' });
+    }
+
+    document.getElementById('pmsStatsBar').innerHTML = stats.map((s, i) =>
+      `${i > 0 ? '<div class="pms-stat-sep"></div>' : ''}
+       <div class="pms-stat">
+         <div class="pms-stat-val">${s.val}</div>
+         <div class="pms-stat-lbl">${s.lbl}</div>
+       </div>`).join('');
+
+    // ── Render full table ──
+    const BADGE = { confirmed: ['s-confirmed','Confirmed'], pending: ['s-pending','Pending'], checkin: ['s-checkin','Checked in'] };
+    const thead = data.cols.map(c => `<th>${c}</th>`).join('');
+    const tbody = data.rows.map(row => {
+      if (row.every(c => c === '─')) return `<tr><td colspan="${data.cols.length}" style="padding:4px 16px;background:#F4F5F7;border:none;"></td></tr>`;
+      const cells = row.map((cell, i) => {
+        if (data.cols[i] === 'Status') {
+          const [cls, label] = BADGE[cell] || ['', cell];
+          return `<td><span class="status-badge ${cls}">${label}</span></td>`;
+        }
+        const isAlert = cell.includes('⚠') ||
+          (data.cols[i].toLowerCase().includes('balance') && parseFloat(cell.replace(/[€\s,]/g,'')) > 0);
+        return `<td${isAlert ? ' class="cell-alert"' : ''}>${cell}</td>`;
+      }).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+
+    document.getElementById('pmsTableWrap').innerHTML = `
+      <table class="pms-full-table">
+        <thead><tr>${thead}</tr></thead>
+        <tbody>${tbody}</tbody>
+      </table>
+      <div class="pms-row-count">${realRows.length} record${realRows.length !== 1 ? 's' : ''}</div>`;
+
+    document.getElementById('pmsOverlay').classList.add('open');
+  }
+
+  function closePMSOverlay() {
+    document.getElementById('pmsOverlay').classList.remove('open');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePMSOverlay();
+  });
+
+  // ── DOM helpers ───────────────────────────────────────────────
+  const fmt = t => t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  const now = () => new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+  function addMessage(role, text) {
+    const s = document.getElementById('chatSection');
+    const d = document.createElement('div');
+    d.className = `message ${role}`;
+    d.innerHTML = `<div class="message-bubble">${fmt(text)}</div><div class="message-time">${now()}</div>`;
+    s.appendChild(d);
+    s.scrollTop = s.scrollHeight;
+    document.getElementById('clearChatBtn').style.display = 'flex';
+  }
+
+  let _openReportData = null;
+
+  function addAgentReport(summary, data) {
+    _openReportData = data;
+    const s = document.getElementById('chatSection');
+    const d = document.createElement('div');
+    d.className = 'message agent';
+
+    const BADGE = { confirmed: ['s-confirmed','Confirmed'], pending: ['s-pending','Pending'], checkin: ['s-checkin','Checked in'] };
+
+    const headerCells = data.cols.map(c => `<th>${c}</th>`).join('');
+    const bodyRows = data.rows.map(row => {
+      if (row.every(c => c === '─')) return `<tr><td colspan="${data.cols.length}" style="padding:3px 10px;border:none;background:#F4F5F7;"></td></tr>`;
+      const cells = row.map((cell, i) => {
+        if (data.cols[i] === 'Status') {
+          const [cls, label] = BADGE[cell] || ['', cell];
+          return `<td><span class="status-badge ${cls}">${label}</span></td>`;
+        }
+        const isAlert = cell.includes('⚠');
+        return `<td style="${isAlert ? 'color:#E84E1B;font-weight:600;' : ''}">${cell}</td>`;
+      }).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+
+    d.innerHTML = `
+      <div class="message-bubble">${fmt(summary)}</div>
+      <div class="report-preview">
+        <div class="report-preview-header">
+          <div class="report-preview-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            ${data.title}
+          </div>
+          <div class="report-actions">
+            <button class="btn-sm pms" onclick="openInPMS()">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Open
+            </button>
+            <button class="btn-sm">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+            <button class="btn-sm primary">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Print
+            </button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;max-height:210px;overflow-y:auto;">
+          <table class="report-table">
+            <thead><tr>${headerCells}</tr></thead>
+            <tbody>${bodyRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="message-time">${now()}</div>
+    `;
+    s.appendChild(d);
+    s.scrollTop = s.scrollHeight;
+  }
+
+  // ── KPI date picker ───────────────────────────────────────────
+  let currentRange = 'day';
+  let selectedDateLabel = 'Mon 09 Mar 2026';
+
+  function jumpToToday() {
+    document.getElementById('kpiDateInput').value = '2026-03-09';
+    updateKPIsForDate('2026-03-09');
+  }
+
+  function setRange(mode) {
+    currentRange = mode;
+    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('range' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+    const val = document.getElementById('kpiDateInput').value;
+    if (val) updateKPIsForDate(val);
+  }
+
+  function updateKPIsForDate(dateStr) {
+    const d = new Date(dateStr);
+    const dayNames   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const monthFull  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    // ── Build the section label & selectedDateLabel ──
+    let sectionLabel = '';
+    let compareLabel = '';
+
+    if (currentRange === 'week') {
+      const dow = d.getUTCDay();
+      const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - (dow === 0 ? 6 : dow - 1));
+      const sun = new Date(mon); sun.setUTCDate(mon.getUTCDate() + 6);
+      const mD = String(mon.getUTCDate()).padStart(2,'0');
+      const sD = String(sun.getUTCDate()).padStart(2,'0');
+      const mM = monthShort[mon.getUTCMonth()], sM = monthShort[sun.getUTCMonth()];
+      sectionLabel = mM === sM
+        ? `Week of ${mD}–${sD} ${mM} ${mon.getUTCFullYear()}`
+        : `Week of ${mD} ${mM}–${sD} ${sM} ${mon.getUTCFullYear()}`;
+      selectedDateLabel = sectionLabel;
+      compareLabel = 'vs prev week';
+    } else if (currentRange === 'month') {
+      sectionLabel = `${monthFull[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+      selectedDateLabel = sectionLabel;
+      compareLabel = 'vs prev month';
+    } else {
+      sectionLabel = `${dayNames[d.getUTCDay()]} ${String(d.getUTCDate()).padStart(2,'0')} ${monthShort[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+      selectedDateLabel = sectionLabel;
+      compareLabel = 'vs last week';
+    }
+
+    document.getElementById('kpiSectionLabel').innerHTML =
+      `Group KPIs · ${sectionLabel}<span class="section-label-action">Configure ⚙</span>`;
+
+    // ── Seed-based pseudo-random (consistent per date) ──
+    const seed = d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+    const r = (min, max, s) => {
+      const x = Math.sin(seed + s) * 10000;
+      return Math.floor((x - Math.floor(x)) * (max - min + 1)) + min;
+    };
+
+    // Base daily values
+    let occ  = r(55, 96, 1);
+    let arr  = r(5, 22, 2);
+    let dep  = r(4, 18, 3);
+    let adr  = r(118, 198, 4);
+    let bfst = r(12, 48, 5);
+
+    // Scale for week / month (totals for counts, avg for rates)
+    const mult = currentRange === 'week' ? 7 : currentRange === 'month' ? 28 : 1;
+    const arrTotal  = currentRange === 'day' ? arr  : arr  * mult + r(-mult, mult, 11);
+    const depTotal  = currentRange === 'day' ? dep  : dep  * mult + r(-mult, mult, 12);
+    const bfstTotal = currentRange === 'day' ? bfst : bfst * mult + r(-mult, mult, 13);
+    // Occ & ADR stay as averages; revenue scales
+    const rev = ((adr * occ / 100 * 21 * mult) / 1000).toFixed(currentRange === 'day' ? 1 : 0);
+
+    const occDelta = r(-7, 9, 7);
+    const adrDelta = r(-14, 18, 8);
+    const revDelta = r(-11, 15, 9);
+
+    function applyDelta(elId, val, unit, suffix) {
+      const el    = document.getElementById(elId);
+      const cls   = val > 0 ? 'delta-up' : val < 0 ? 'delta-down' : 'delta-neutral';
+      const arrow = val > 0 ? '↑' : val < 0 ? '↓' : '→';
+      const sign  = val > 0 ? '+' : '';
+      el.className = `kpi-delta ${cls}`;
+      el.textContent = `${arrow} ${sign}${unit}${Math.abs(val)}${suffix}`;
+    }
+
+    // Occupancy (always %)
+    document.getElementById('kpi-occupancy-val').innerHTML = `${occ}<span>%</span>`;
+    applyDelta('kpi-occupancy-delta', occDelta, '', `% ${compareLabel}`);
+
+    // Arrivals
+    document.getElementById('kpi-arrivals-val').textContent = arrTotal;
+    const arrBase = currentRange === 'day' ? 14 : 14 * mult;
+    const arrDiff = arrTotal - arrBase;
+    const arrEl = document.getElementById('kpi-arrivals-delta');
+    arrEl.className = `kpi-delta ${arrDiff === 0 ? 'delta-neutral' : arrDiff > 0 ? 'delta-up' : 'delta-down'}`;
+    arrEl.textContent = arrDiff === 0 ? '→ same as avg' : `${arrDiff > 0 ? '↑ +' : '↓ '}${Math.abs(arrDiff)} vs avg`;
+
+    // Departures
+    document.getElementById('kpi-departures-val').textContent = depTotal;
+    const depBase = currentRange === 'day' ? 9 : 9 * mult;
+    const depDiff = depTotal - depBase;
+    const depEl = document.getElementById('kpi-departures-delta');
+    depEl.className = `kpi-delta ${depDiff === 0 ? 'delta-neutral' : depDiff > 0 ? 'delta-up' : 'delta-down'}`;
+    const depCompare = currentRange === 'day' ? 'vs yesterday' : compareLabel;
+    depEl.textContent = depDiff === 0 ? `→ same ${depCompare}` : `${depDiff > 0 ? '↑ +' : '↓ '}${Math.abs(depDiff)} ${depCompare}`;
+
+    // ADR (always avg)
+    document.getElementById('kpi-adr-val').innerHTML = `<span>€</span>${adr}`;
+    applyDelta('kpi-adr-delta', adrDelta, '€', ` ${compareLabel}`);
+
+    // Breakfast
+    document.getElementById('kpi-breakfast-val').textContent = bfstTotal;
+    const bfBase = currentRange === 'day' ? 31 : 31 * mult;
+    const bfDiff = bfstTotal - bfBase;
+    const bfEl = document.getElementById('kpi-breakfast-delta');
+    bfEl.className = `kpi-delta ${bfDiff === 0 ? 'delta-neutral' : bfDiff > 0 ? 'delta-up' : 'delta-down'}`;
+    const bfCompare = currentRange === 'day' ? 'vs yesterday' : compareLabel;
+    bfEl.textContent = bfDiff === 0 ? `→ same ${bfCompare}` : `${bfDiff > 0 ? '↑ +' : '↓ '}${Math.abs(bfDiff)} ${bfCompare}`;
+
+    // Revenue
+    const revSuffix = currentRange === 'day' ? '' : currentRange === 'week' ? '' : '';
+    document.getElementById('kpi-revenue-val').innerHTML = `<span>€</span>${rev}k`;
+    applyDelta('kpi-revenue-delta', revDelta, '', `% ${compareLabel}`);
+  }
+
+  // ── Agent tab switching ───────────────────────────────────────
+  function switchAgentTab(tab) {
+    ['chat','automations','watch'].forEach(t => {
+      const panelId = t === 'chat' ? 'chatPanel' : t === 'automations' ? 'automationsPanel' : 'watchPanel';
+      const btnId   = 'tab' + t.charAt(0).toUpperCase() + t.slice(1);
+      document.getElementById(panelId).style.display = t === tab ? 'flex' : 'none';
+      document.getElementById(btnId).classList.toggle('active', t === tab);
+    });
+    if (tab === 'automations') renderAutomations();
+    if (tab === 'watch')       renderWatch();
+  }
+
+  // ── Watch tab: issue data ─────────────────────────────────────
+  let issues = [
+    {
+      id: 1, severity: 'critical', category: 'compliance',
+      title: 'February city tax report overdue',
+      reason: 'The monthly city tax declaration for February was due on Mar 10. It has not been filed — you are now 1 day past the deadline. The estimated amount owed is €312.',
+      detail: 'Due: 10 Mar 2026 · Est. amount: €312',
+      resolved: false, assignee: null
+    },
+    {
+      id: 2, severity: 'critical', category: 'revenue',
+      title: 'Reservation entered at unusually low rate',
+      reason: 'Booking #0447 for DOUBLE 06 (Mar 12–14) was entered at €29/night — 80% below this room\'s average rate of €148. This looks like a manual input error or an unauthorised override.',
+      detail: 'Booking #0447 · DOUBLE 06 · Mar 12–14',
+      resolved: false, assignee: null
+    },
+    {
+      id: 3, severity: 'warning', category: 'operational',
+      title: 'Guest allergy with no kitchen notification',
+      reason: 'Adams, T. (SUITE 19) has a registered severe nut allergy on file. No kitchen notification has been logged for tonight\'s dinner service. Requires immediate follow-up.',
+      detail: 'Adams, T. · SUITE 19 · Arriving today',
+      resolved: false, assignee: null
+    },
+    {
+      id: 4, severity: 'warning', category: 'anomaly',
+      title: 'Tuesday revenue 42% below historical average',
+      reason: 'Revenue for Tuesday Mar 10 was €1,200 — well below the 4-week Tuesday average of €2,060. No group cancellation is recorded. This deviation has not occurred in the past 3 months.',
+      detail: 'Mar 10 · €1,200 actual vs €2,060 avg (−42%)',
+      resolved: false, assignee: null
+    },
+    {
+      id: 5, severity: 'warning', category: 'compliance',
+      title: '3 arriving guests missing ID scan',
+      reason: 'De Smedt, J. (SUITE 15), Nguyen, L. (SINGLE 02), and Janssen, P. (DOUBLE 10) are all checking in today with no scanned ID on file. Local regulations require registration within 24h of check-in.',
+      detail: 'De Smedt · Nguyen · Janssen · Arriving today',
+      resolved: false, assignee: null
+    },
+    {
+      id: 6, severity: 'info', category: 'anomaly',
+      title: 'Availability sync discrepancy detected',
+      reason: 'DOUBLE 06 appears as "available" in the room grid while Booking #0447 is active for Mar 12–14 in the system. This may indicate a failed sync with an OTA channel.',
+      detail: 'DOUBLE 06 · Mar 12–14 · Possible OTA sync error',
+      resolved: false, assignee: null
+    },
+  ];
+
+  const COLLEAGUES = [
+    { name: 'Sarah V.',   initials: 'SV', color: '#7C6FFF' },
+    { name: 'Thomas D.',  initials: 'TD', color: '#E84E1B' },
+    { name: 'Kim P.',     initials: 'KP', color: '#22C55E' },
+    { name: 'Marc B.',    initials: 'MB', color: '#3B82F6' },
+  ];
+
+  const CAT_LABEL = { revenue: 'Revenue', compliance: 'Compliance', operational: 'Ops', anomaly: 'Anomaly' };
+  const INFO_ICON  = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+  const USER_ICON  = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+  const CHECK_ICON = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const CHAT_ICON  = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>`;
+  const SCAN_ICON  = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>`;
+
+  function renderWatch() {
+    const container = document.getElementById('watchContent');
+    const active    = issues.filter(i => !i.resolved).length;
+    document.getElementById('watchBadge').textContent = active;
+
+    const cards = issues.map(issue => {
+      const assignedBadge = issue.assignee
+        ? `<span class="assigned-badge">${USER_ICON} ${issue.assignee}</span>`
+        : '';
+      const colleagueOpts = COLLEAGUES.map(c =>
+        `<div class="assign-option" onclick="assignIssue(${issue.id}, '${c.name}')">
+           <div class="assign-avatar" style="background:${c.color}">${c.initials}</div>${c.name}
+         </div>`).join('');
+
+      return `
+        <div class="issue-card sev-${issue.severity} ${issue.resolved ? 'resolved' : ''}" id="issue-${issue.id}">
+          <div class="issue-top">
+            <span class="issue-cat cat-${issue.category}">${CAT_LABEL[issue.category]}</span>
+            <div class="issue-title">${issue.title}</div>
+          </div>
+          <div class="issue-reason">${issue.reason}</div>
+          <div class="issue-detail">${INFO_ICON} ${issue.detail}</div>
+          <div class="issue-actions">
+            <button class="btn-investigate" onclick="investigateIssue(${issue.id})">${CHAT_ICON} Investigate</button>
+            <div style="position:relative;">
+              <button class="btn-assign" id="assignBtn-${issue.id}" onclick="toggleAssignPopover(${issue.id})">${USER_ICON} Assign ▾</button>
+              <div class="assign-popover" id="popover-${issue.id}">${colleagueOpts}</div>
+            </div>
+            ${assignedBadge}
+            <button class="btn-resolve" onclick="resolveIssue(${issue.id})">${CHECK_ICON} Resolve</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="watch-header">
+        <div class="watch-header-row">
+          <div class="watch-live-dot"></div>
+          <span class="watch-title">AI Monitor is active</span>
+          <button class="scan-btn" id="scanBtn" onclick="scanIssues()">${SCAN_ICON} Scan now</button>
+        </div>
+        <div class="watch-sub" id="watchSub">Last scanned: <strong>just now</strong> · <strong>${active} issue${active !== 1 ? 's' : ''}</strong> detected</div>
+      </div>
+      <div class="issues-list">${cards || '<div style="padding:30px 0;text-align:center;color:#9CA3AF;font-size:13px;">✓ No issues detected. Everything looks good.</div>'}</div>`;
+  }
+
+  function scanIssues() {
+    const btn = document.getElementById('scanBtn');
+    if (!btn || btn.disabled) return;
+    btn.classList.add('scanning'); btn.disabled = true;
+    setTimeout(() => {
+      btn.classList.remove('scanning'); btn.disabled = false;
+      const active = issues.filter(i => !i.resolved).length;
+      const sub = document.getElementById('watchSub');
+      if (sub) sub.innerHTML = `Last scanned: <strong>just now</strong> · <strong>${active} issue${active !== 1 ? 's' : ''}</strong> detected`;
+    }, 1800);
+  }
+
+  function investigateIssue(id) {
+    const issue = issues.find(i => i.id === id);
+    if (!issue) return;
+    switchAgentTab('chat');
+    const input = document.getElementById('chatInput');
+    if (input) { input.value = `Investigate this issue: ${issue.title} — ${issue.detail}`; autoResize(input); input.focus(); }
+  }
+
+  function toggleAssignPopover(id) {
+    const pop = document.getElementById(`popover-${id}`);
+    const wasOpen = pop.classList.contains('open');
+    document.querySelectorAll('.assign-popover.open').forEach(p => p.classList.remove('open'));
+    if (!wasOpen) pop.classList.add('open');
+  }
+
+  function assignIssue(id, name) {
+    const issue = issues.find(i => i.id === id);
+    if (issue) issue.assignee = name;
+    document.getElementById(`popover-${id}`)?.classList.remove('open');
+    renderWatch();
+  }
+
+  function resolveIssue(id) {
+    const card = document.getElementById(`issue-${id}`);
+    if (card) {
+      card.classList.add('resolved');
+      setTimeout(() => {
+        const issue = issues.find(i => i.id === id);
+        if (issue) issue.resolved = true;
+        renderWatch();
+      }, 380);
+    }
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.btn-assign') && !e.target.closest('.assign-popover'))
+      document.querySelectorAll('.assign-popover.open').forEach(p => p.classList.remove('open'));
+  });
+
+  // ── Automations data ──────────────────────────────────────────
+  let automations = [
+    { id: 1, name: 'No-show report',        type: 'noshow',     scheduleLabel: 'Every night at 01:00',   time: '01:00', days: 'daily',   delivery: 'email',    recipient: 'ops@stardekk.com',      enabled: true  },
+    { id: 2, name: 'Arrival list',           type: 'arrivals',   scheduleLabel: 'Every morning at 07:00', time: '07:00', days: 'daily',   delivery: 'whatsapp', recipient: '+32 478 123 456',        enabled: true  },
+    { id: 3, name: 'Weekly revenue summary', type: 'revenue',    scheduleLabel: 'Every Monday at 08:00',  time: '08:00', days: 'monday',  delivery: 'email',    recipient: 'manager@stardekk.com',  enabled: false },
+  ];
+  let nextAutoId  = 4;
+  let formDelivery = 'email';
+
+  const REPORT_TYPES = [
+    { value: 'noshow',     label: 'No-show report'       },
+    { value: 'arrivals',   label: 'Arrival list'          },
+    { value: 'departures', label: 'Departure list'        },
+    { value: 'breakfast',  label: 'Breakfast list'        },
+    { value: 'occupancy',  label: 'Occupancy overview'    },
+    { value: 'payments',   label: 'Payments summary'      },
+    { value: 'revenue',    label: 'Revenue summary'       },
+    { value: 'vip',        label: 'VIP in-house guests'   },
+  ];
+
+  const SCHEDULE_OPTS = [
+    { value: 'daily',     label: 'Every day'       },
+    { value: 'weekdays',  label: 'Weekdays only'   },
+    { value: 'monday',    label: 'Every Monday'    },
+    { value: 'friday',    label: 'Every Friday'    },
+    { value: 'weekend',   label: 'Weekends'        },
+  ];
+
+  const SCHED_LABEL = { daily: 'Every day', weekdays: 'Weekdays', monday: 'Every Mon', friday: 'Every Fri', weekend: 'Weekends' };
+
+  function getScheduleLabel(days, time) {
+    return `${SCHED_LABEL[days] || days} at ${time}`;
+  }
+
+  const TYPE_ICONS = {
+    noshow:     `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5046E5" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>`,
+    arrivals:   `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5046E5" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>`,
+    departures: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5046E5" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+    breakfast:  `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5046E5" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>`,
+    revenue:    `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5046E5" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>`,
+    occupancy:  `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5046E5" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+  };
+  const DEFAULT_ICON = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5046E5" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+
+  const EMAIL_ICON    = `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8l10 7 10-7"/></svg>`;
+  const WA_ICON       = `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>`;
+  const CLOCK_ICON    = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const TRASH_ICON    = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>`;
+
+  function renderAutomations() {
+    const container = document.getElementById('automationsContent');
+    const cards = automations.map(a => `
+      <div class="auto-card ${a.enabled ? '' : 'disabled'}" id="auto-${a.id}">
+        <div class="auto-icon">${TYPE_ICONS[a.type] || DEFAULT_ICON}</div>
+        <div class="auto-body">
+          <div class="auto-name">${a.name}</div>
+          <div class="auto-meta">
+            <span class="auto-schedule">${CLOCK_ICON} ${a.scheduleLabel}</span>
+            <span class="delivery-badge delivery-${a.delivery}">
+              ${a.delivery === 'email' ? EMAIL_ICON + ' Email' : WA_ICON + ' WhatsApp'}
+            </span>
+          </div>
+          <div class="auto-recipient">${a.recipient}</div>
+        </div>
+        <div class="auto-actions">
+          <label class="toggle-switch">
+            <input type="checkbox" ${a.enabled ? 'checked' : ''} onchange="toggleAutomation(${a.id})">
+            <span class="toggle-track"></span>
+          </label>
+          <button class="auto-delete-btn" onclick="deleteAutomation(${a.id})" title="Delete">${TRASH_ICON}</button>
+        </div>
+      </div>`).join('');
+
+    const typeOpts = REPORT_TYPES.map(t => `<option value="${t.value}">${t.label}</option>`).join('');
+    const schedOpts = SCHEDULE_OPTS.map(s => `<option value="${s.value}">${s.label}</option>`).join('');
+
+    container.innerHTML = `
+      <div class="auto-list">${cards || '<div style="padding:30px 0;text-align:center;color:#9CA3AF;font-size:13px;">No automations yet.<br>Add one below to get started.</div>'}</div>
+      <button class="auto-add-btn" id="autoAddBtn" onclick="showAutoForm()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New automation
+      </button>
+      <div class="auto-form" id="autoForm">
+        <div class="section-label" style="margin-bottom:4px;">New automation</div>
+        <div class="form-group">
+          <label class="form-label">Report</label>
+          <select class="form-select" id="autoType">${typeOpts}</select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Schedule</label>
+            <select class="form-select" id="autoDays">${schedOpts}</select>
+          </div>
+          <div class="form-group" style="flex:0 0 88px;">
+            <label class="form-label">Time</label>
+            <input type="time" class="form-input" id="autoTime" value="07:00">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Delivery</label>
+          <div class="delivery-toggle">
+            <button class="delivery-opt active" id="doptEmail" onclick="setFormDelivery('email')">
+              ${EMAIL_ICON} Email
+            </button>
+            <button class="delivery-opt" id="doptWhatsapp" onclick="setFormDelivery('whatsapp')">
+              ${WA_ICON} WhatsApp
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="recipientLabel">Email address</label>
+          <input type="text" class="form-input" id="autoRecipient" placeholder="name@hotel.com">
+        </div>
+        <div class="form-actions">
+          <button class="btn-save-auto" onclick="saveAutomation()">Save automation</button>
+          <button class="btn-cancel-auto" onclick="hideAutoForm()">Cancel</button>
+        </div>
+      </div>`;
+  }
+
+  function showAutoForm() {
+    document.getElementById('autoAddBtn').style.display = 'none';
+    document.getElementById('autoForm').classList.add('visible');
+    formDelivery = 'email';
+  }
+
+  function hideAutoForm() {
+    document.getElementById('autoAddBtn').style.display = '';
+    document.getElementById('autoForm').classList.remove('visible');
+  }
+
+  function setFormDelivery(type) {
+    formDelivery = type;
+    document.getElementById('doptEmail').classList.toggle('active', type === 'email');
+    document.getElementById('doptWhatsapp').classList.toggle('active', type === 'whatsapp');
+    document.getElementById('recipientLabel').textContent = type === 'email' ? 'Email address' : 'WhatsApp number';
+    document.getElementById('autoRecipient').placeholder  = type === 'email' ? 'name@hotel.com' : '+32 478 000 000';
+  }
+
+  function saveAutomation() {
+    const recipient = document.getElementById('autoRecipient').value.trim();
+    if (!recipient) {
+      const el = document.getElementById('autoRecipient');
+      el.style.borderColor = '#EF4444';
+      setTimeout(() => { el.style.borderColor = ''; }, 1500);
+      return;
+    }
+    const type  = document.getElementById('autoType').value;
+    const days  = document.getElementById('autoDays').value;
+    const time  = document.getElementById('autoTime').value;
+    const label = REPORT_TYPES.find(t => t.value === type)?.label || type;
+    automations.push({ id: nextAutoId++, name: label, type, scheduleLabel: getScheduleLabel(days, time), time, days, delivery: formDelivery, recipient, enabled: true });
+    document.getElementById('autoBadge').textContent = automations.length;
+    renderAutomations();
+  }
+
+  function toggleAutomation(id) {
+    const a = automations.find(a => a.id === id);
+    if (a) { a.enabled = !a.enabled; document.getElementById(`auto-${id}`)?.classList.toggle('disabled', !a.enabled); }
+  }
+
+  function deleteAutomation(id) {
+    automations = automations.filter(a => a.id !== id);
+    document.getElementById('autoBadge').textContent = automations.length;
+    renderAutomations();
+  }
+
+  let _tc = 0;
+  function addTyping() {
+    const id = 'ty-' + (++_tc);
+    const s = document.getElementById('chatSection');
+    const d = document.createElement('div');
+    d.className = 'message agent'; d.id = id;
+    d.innerHTML = `<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+    s.appendChild(d);
+    s.scrollTop = s.scrollHeight;
+    return id;
+  }
+  function removeTyping(id) { document.getElementById(id)?.remove(); }
+</script>
+</body>
+</html>

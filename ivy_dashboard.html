@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ivy — The Crown Hotel</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ── Reset & tokens ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange:    #F26419;
+  --orange-l:  #FEE8D6;
+  --orange-m:  #FDDCC4;
+  --cream:     #FEF6EE;
+  --ink:       #1A1A1A;
+  --ink2:      #4A4A4A;
+  --ink3:      #888888;
+  --card:      #FFFFFF;
+  --border:    #EDE8E3;
+  --green:     #16A34A;
+  --green-l:   #DCFCE7;
+  --red:       #DC2626;
+  --red-l:     #FEE2E2;
+  --blue:      #3B82F6;
+  --blue-l:    #DBEAFE;
+  --radius:    12px;
+  --shadow:    0 1px 4px rgba(0,0,0,.07), 0 0 0 1px var(--border);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.10), 0 0 0 1px var(--border);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────── */
+.app { max-width: 1320px; margin: 0 auto; padding: 0 16px 40px; }
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.logo {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  color: var(--ink3); text-transform: uppercase;
+}
+.logo-mark {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--orange); display: flex; align-items: center;
+  justify-content: center; color: #fff; font-size: 14px; font-weight: 900;
+}
+.header-divider { width: 1px; height: 24px; background: var(--border); }
+.hotel-name { font-size: 18px; font-weight: 700; color: var(--ink); }
+.header-right {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.period-btn {
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+  padding: 5px 14px; font-size: 12px; font-weight: 600; color: var(--ink2);
+  cursor: pointer; transition: all .15s;
+}
+.period-btn.active, .period-btn:hover {
+  background: var(--orange); color: #fff; border-color: var(--orange);
+}
+.last-updated {
+  font-size: 11px; color: var(--ink3);
+  display: flex; align-items: center; gap: 5px;
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+/* ── KPI Row ────────────────────────────────────────────────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.kpi-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 18px 14px;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  transition: box-shadow .2s;
+}
+.kpi-card:hover { box-shadow: var(--shadow-md); }
+.kpi-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--orange); border-radius: var(--radius) var(--radius) 0 0;
+}
+.kpi-label { font-size: 11px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+.kpi-value { font-size: 28px; font-weight: 800; color: var(--ink); line-height: 1; margin-bottom: 8px; }
+.kpi-delta {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+}
+.kpi-delta.pos { background: var(--green-l); color: var(--green); }
+.kpi-delta.neg { background: var(--red-l);   color: var(--red); }
+.kpi-budget { font-size: 10.5px; color: var(--ink3); margin-top: 5px; }
+
+/* ── Main grid ──────────────────────────────────────────────────────── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 16px;
+  align-items: start;
+}
+.charts-col { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Card base ──────────────────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+.card-sub   { font-size: 11px; color: var(--ink3); margin-top: 1px; }
+.section-label {
+  font-size: 10px; font-weight: 800; color: var(--orange);
+  text-transform: uppercase; letter-spacing: .09em;
+}
+
+/* ── Charts ─────────────────────────────────────────────────────────── */
+.chart-wrap { position: relative; height: 180px; }
+.chart-wrap-sm { position: relative; height: 140px; }
+
+/* ── Channel table ──────────────────────────────────────────────────── */
+.channel-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.channel-table th {
+  font-size: 10px; font-weight: 700; color: var(--orange);
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 6px 8px; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.channel-table th:not(:first-child) { text-align: right; }
+.channel-table td {
+  padding: 8px 8px; font-size: 12.5px; color: var(--ink2);
+  border-bottom: 1px solid var(--border);
+}
+.channel-table td:not(:first-child) { text-align: right; }
+.channel-table tr:last-child td { border-bottom: none; }
+.channel-table tbody tr:hover { background: var(--cream); }
+.channel-name { font-weight: 600; color: var(--ink); }
+.delta-pos { color: var(--green); font-weight: 700; }
+.delta-neg { color: var(--red);   font-weight: 700; }
+.bar-cell { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.bar-bg { flex: 1; max-width: 60px; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--orange); border-radius: 3px; transition: width .6s; }
+
+/* ── Ivy chat panel ─────────────────────────────────────────────────── */
+.chat-panel {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  height: 560px;
+  overflow: hidden;
+}
+.chat-header-bar {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.ivy-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--orange), #FFB347);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px; color: #fff;
+  flex-shrink: 0;
+}
+.ivy-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+.ivy-status { font-size: 10px; color: var(--green); display: flex; align-items: center; gap: 4px; }
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+.powered-by { margin-left: auto; font-size: 9.5px; color: var(--ink3); font-style: italic; }
+
+.messages {
+  flex: 1; overflow-y: auto; padding: 14px;
+  display: flex; flex-direction: column; gap: 10px;
+  scroll-behavior: smooth;
+}
+.messages::-webkit-scrollbar { width: 4px; }
+.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.msg { display: flex; gap: 8px; max-width: 100%; }
+.msg.user { flex-direction: row-reverse; }
+
+.msg-bubble {
+  max-width: 84%;
+  padding: 9px 12px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.msg.ivy .msg-bubble {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  color: var(--ink2);
+  border-bottom-left-radius: 4px;
+}
+.msg.user .msg-bubble {
+  background: var(--orange);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.msg-time { font-size: 10px; color: var(--ink3); margin-top: 3px; text-align: right; }
+.msg.ivy .msg-time { text-align: left; }
+.msg-avatar { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+.msg-avatar.ivy-sm {
+  background: linear-gradient(135deg, var(--orange), #FFB347);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; color: #fff;
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex; gap: 4px; align-items: center; padding: 10px 12px;
+  background: var(--cream); border: 1px solid var(--border);
+  border-radius: 14px; border-bottom-left-radius: 4px;
+  width: fit-content;
+}
+.typing-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink3); opacity: .4;
+  animation: blink 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: .2s; }
+.typing-dot:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100% { opacity:.4; transform: scale(1); } 40% { opacity:1; transform: scale(1.2); } }
+
+/* Suggestions */
+.suggestions {
+  padding: 8px 12px 0;
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.suggestion {
+  background: var(--cream); border: 1px solid var(--border);
+  border-radius: 20px; padding: 4px 11px;
+  font-size: 11px; color: var(--ink2); cursor: pointer;
+  transition: all .15s; white-space: nowrap;
+}
+.suggestion:hover { background: var(--orange-l); border-color: var(--orange); color: var(--orange); }
+
+/* Chat input */
+.chat-input-row {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 8px; align-items: flex-end;
+}
+.chat-input {
+  flex: 1; border: 1px solid var(--border); border-radius: 20px;
+  padding: 8px 14px; font-size: 12.5px; color: var(--ink);
+  background: var(--cream); resize: none; outline: none;
+  font-family: inherit; min-height: 36px; max-height: 90px;
+  transition: border-color .15s;
+}
+.chat-input:focus { border-color: var(--orange); }
+.send-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--orange); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; flex-shrink: 0; transition: opacity .15s;
+}
+.send-btn:hover { opacity: .85; }
+.send-btn svg { width: 15px; height: 15px; }
+
+/* ── Watch card ─────────────────────────────────────────────────────── */
+.watch-card {
+  background: #FFF7ED;
+  border: 1px solid #FDBA74;
+  border-radius: var(--radius);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 12px;
+}
+.watch-card::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: var(--orange);
+}
+.watch-title {
+  font-size: 12px; font-weight: 700; color: var(--orange);
+  margin-bottom: 6px; padding-left: 8px;
+}
+.watch-body { font-size: 12px; color: var(--ink2); line-height: 1.55; padding-left: 8px; }
+
+/* ── Pacing row ─────────────────────────────────────────────────────── */
+.pacing-row { margin-top: 16px; }
+
+/* ── Day table (bottom) ─────────────────────────────────────────────── */
+.day-table-card { margin-top: 16px; }
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .chat-panel { height: 480px; }
+}
+@media (max-width: 600px) {
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .kpi-value { font-size: 22px; }
+  .header { padding: 12px 0 10px; }
+  .hotel-name { font-size: 16px; }
+}
+
+/* ── Animations ─────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.kpi-card   { animation: fadeUp .35s ease both; }
+.kpi-card:nth-child(1) { animation-delay: .05s; }
+.kpi-card:nth-child(2) { animation-delay: .10s; }
+.kpi-card:nth-child(3) { animation-delay: .15s; }
+.kpi-card:nth-child(4) { animation-delay: .20s; }
+.card       { animation: fadeUp .4s ease both; }
+.chat-panel { animation: fadeUp .4s ease .15s both; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Header ──────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <div class="logo-mark">L</div>
+        Lighthouse
+      </div>
+      <div class="header-divider"></div>
+      <div class="hotel-name">The Crown Hotel</div>
+    </div>
+    <div class="header-right">
+      <div style="display:flex;gap:6px;">
+        <button class="period-btn active" onclick="setPeriod(this,'week')">This Week</button>
+        <button class="period-btn" onclick="setPeriod(this,'month')">This Month</button>
+        <button class="period-btn" onclick="setPeriod(this,'ytd')">YTD</button>
+      </div>
+      <div class="last-updated">
+        <div class="dot"></div>
+        Updated today, 7:02 am
+      </div>
+    </div>
+  </header>
+
+  <!-- ── KPI Cards ───────────────────────────────────────────────────── -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Occupancy</div>
+      <div class="kpi-value" id="kpi-occ">84%</div>
+      <div class="kpi-delta pos">▲ +6pp vs LY</div>
+      <div class="kpi-budget">vs Budget: +2pp</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value" id="kpi-rev">£18,240</div>
+      <div class="kpi-delta pos">▲ +11% vs LY</div>
+      <div class="kpi-budget">vs Budget: +8%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">ADR</div>
+      <div class="kpi-value" id="kpi-adr">£108</div>
+      <div class="kpi-delta pos">▲ +4% vs LY</div>
+      <div class="kpi-budget">vs Budget: +1%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">RevPAR</div>
+      <div class="kpi-value" id="kpi-revpar">£91</div>
+      <div class="kpi-delta pos">▲ +12% vs LY</div>
+      <div class="kpi-budget">vs Budget: +5%</div>
+    </div>
+  </div>
+
+  <!-- ── Main grid ───────────────────────────────────────────────────── -->
+  <div class="main-grid">
+
+    <!-- Charts column -->
+    <div class="charts-col">
+
+      <!-- Occupancy chart -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="section-label">Daily Occupancy</div>
+            <div class="card-title">10 – 16 February 2026</div>
+          </div>
+          <div style="font-size:11px;color:var(--ink3);display:flex;gap:14px;align-items:center;">
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--orange);border-radius:3px;display:inline-block;"></span> This year</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--blue-l);border:1.5px solid var(--blue);border-radius:3px;display:inline-block;"></span> Last year</span>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="occChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Channel breakdown -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="section-label">Bookings by Channel</div>
+            <div class="card-title">Week of 10–16 Feb</div>
+          </div>
+        </div>
+        <table class="channel-table">
+          <thead>
+            <tr>
+              <th>Channel</th>
+              <th>Rooms</th>
+              <th>Revenue</th>
+              <th>Avg Rate</th>
+              <th>Share</th>
+              <th>vs LY</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="channel-name">Direct</span></td>
+              <td>56</td><td>£6,440</td><td>£115</td>
+              <td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:33%"></div></div>33%</div></td>
+              <td><span class="delta-pos">+18%</span></td>
+            </tr>
+            <tr>
+              <td><span class="channel-name">Booking.com</span></td>
+              <td>52</td><td>£5,720</td><td>£110</td>
+              <td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:31%"></div></div>31%</div></td>
+              <td><span class="delta-pos">+8%</span></td>
+            </tr>
+            <tr>
+              <td><span class="channel-name">Corporate</span></td>
+              <td>31</td><td>£3,410</td><td>£110</td>
+              <td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:18%"></div></div>18%</div></td>
+              <td><span class="delta-pos">+5%</span></td>
+            </tr>
+            <tr>
+              <td><span class="channel-name">Expedia</span></td>
+              <td>22</td><td>£2,310</td><td>£105</td>
+              <td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:13%"></div></div>13%</div></td>
+              <td><span class="delta-neg">−3%</span></td>
+            </tr>
+            <tr>
+              <td><span class="channel-name">Other</span></td>
+              <td>8</td><td>£360</td><td>£90</td>
+              <td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:5%"></div></div>5%</div></td>
+              <td><span class="delta-neg">−10%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pacing chart -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="section-label">Forward Pacing</div>
+            <div class="card-title">Next 7 Days vs Same Period Last Year</div>
+          </div>
+          <div style="font-size:11px;color:var(--ink3);display:flex;gap:14px;align-items:center;">
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--orange);border-radius:3px;display:inline-block;"></span> Current</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:var(--blue-l);border:1.5px solid var(--blue);border-radius:3px;display:inline-block;"></span> Last year</span>
+          </div>
+        </div>
+        <div class="chart-wrap-sm">
+          <canvas id="pacingChart"></canvas>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--ink3);">
+          Orange bars indicate days pacing below last year's equivalent.
+        </div>
+      </div>
+
+    </div><!-- /charts-col -->
+
+    <!-- Chat + Watch column -->
+    <div>
+
+      <!-- Ivy chat -->
+      <div class="chat-panel">
+        <div class="chat-header-bar">
+          <div class="ivy-avatar">I</div>
+          <div>
+            <div class="ivy-name">Ivy</div>
+            <div class="ivy-status"><div class="status-dot"></div> Online</div>
+          </div>
+          <div class="powered-by">Powered by Lighthouse</div>
+        </div>
+
+        <div class="messages" id="messages">
+          <!-- Pre-loaded Monday briefing -->
+          <div class="msg ivy">
+            <div class="msg-avatar ivy-sm">I</div>
+            <div>
+              <div class="msg-bubble">
+                Good morning! Here's your week at <strong>The Crown Hotel</strong>. 👋<br><br>
+                Last week you hit <strong>84% occupancy</strong> — your best week of 2026. Revenue was up <strong>11% year-on-year</strong>, driven by a strong Valentine's weekend and a big jump in direct bookings.<br><br>
+                One thing to watch: <strong>next Thursday looks thin</strong>. You have 14 rooms unbooked and pickup is slow.
+              </div>
+              <div class="msg-time">Today, 7:02 am</div>
+            </div>
+          </div>
+          <div class="msg user">
+            <div>
+              <div class="msg-bubble">Why was Tuesday so quiet?</div>
+              <div class="msg-time">7:14 am</div>
+            </div>
+          </div>
+          <div class="msg ivy">
+            <div class="msg-avatar ivy-sm">I</div>
+            <div>
+              <div class="msg-bubble">
+                Tuesday 11th hit only <strong>61% occupancy</strong> — down from 78% the same Tuesday last year.<br><br>
+                Two things stand out: your <strong>Booking.com rate was £12 above</strong> comparable nearby properties that night, and your <strong>Harrison Construction</strong> corporate account had no bookings all week — unusual for them.<br><br>
+                Worth a quick call. They account for ~18% of your midweek revenue.
+              </div>
+              <div class="msg-time">7:14 am</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="suggestions" id="suggestions">
+          <div class="suggestion" onclick="askSuggestion(this)">What drove the weekend?</div>
+          <div class="suggestion" onclick="askSuggestion(this)">Best channel this week?</div>
+          <div class="suggestion" onclick="askSuggestion(this)">Fix Thursday pacing</div>
+          <div class="suggestion" onclick="askSuggestion(this)">Monthly summary</div>
+        </div>
+
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chatInput" rows="1"
+            placeholder="Ask Ivy anything…"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"></textarea>
+          <button class="send-btn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- One thing to watch -->
+      <div class="watch-card">
+        <div class="watch-title">⚠ One Thing to Watch</div>
+        <div class="watch-body">
+          Next Thursday 19 Feb has <strong>14 rooms unbooked</strong> and pickup is running below your typical pattern. Your OTA rate is currently <strong>£12 above the local market average</strong> for that date. A targeted short-term rate adjustment could meaningfully help close the gap.
+        </div>
+      </div>
+
+    </div><!-- /right col -->
+  </div><!-- /main-grid -->
+
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════════════════════
+const DATA = {
+  week: {
+    occ:    { val:'84%',    delta:'+6pp vs LY',  budget:'vs Budget +2pp',  pos:true },
+    rev:    { val:'£18,240',delta:'+11% vs LY',  budget:'vs Budget +8%',   pos:true },
+    adr:    { val:'£108',   delta:'+4% vs LY',   budget:'vs Budget +1%',   pos:true },
+    revpar: { val:'£91',    delta:'+12% vs LY',  budget:'vs Budget +5%',   pos:true },
+    occDays:   [71, 61, 78, 84, 96, 99, 82],
+    occLY:     [69, 78, 74, 77, 83, 84, 76],
+    occLabels: ['Mon 10','Tue 11','Wed 12','Thu 13','Fri 14','Sat 15','Sun 16'],
+    pacing:    [71, 48, 52, 44, 82, 88, 65],
+    pacingLY:  [78, 65, 72, 70, 90, 95, 80],
+    pacingLabels: ['Mon 17','Tue 18','Wed 19','Thu 20','Fri 21','Sat 22','Sun 23'],
+  },
+  month: {
+    occ:    { val:'79%',    delta:'+4pp vs LY',  budget:'vs Budget +1pp',  pos:true },
+    rev:    { val:'£74,880',delta:'+9% vs LY',   budget:'vs Budget +5%',   pos:true },
+    adr:    { val:'£104',   delta:'+3% vs LY',   budget:'vs Budget -1%',   pos:false },
+    revpar: { val:'£82',    delta:'+7% vs LY',   budget:'vs Budget +3%',   pos:true },
+    occDays:   [72,68,75,77,82,88,74,70,65,72,76,80,85,92],
+    occLY:     [70,71,72,74,78,82,72,68,70,74,72,76,80,86],
+    occLabels: ['3','4','5','6','7','8','9','10','11','12','13','14','15','16'],
+    pacing:    [71,48,52,44,82,88,65],
+    pacingLY:  [78,65,72,70,90,95,80],
+    pacingLabels: ['Mon 17','Tue 18','Wed 19','Thu 20','Fri 21','Sat 22','Sun 23'],
+  },
+  ytd: {
+    occ:    { val:'76%',    delta:'+3pp vs LY',  budget:'On budget',       pos:true },
+    rev:    { val:'£218k',  delta:'+7% vs LY',   budget:'vs Budget +4%',   pos:true },
+    adr:    { val:'£101',   delta:'+2% vs LY',   budget:'vs Budget -2%',   pos:false },
+    revpar: { val:'£77',    delta:'+5% vs LY',   budget:'vs Budget +2%',   pos:true },
+    occDays:   [72,74,76,75,79,80,76],
+    occLY:     [70,72,74,73,77,78,74],
+    occLabels: ['Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7'],
+    pacing:    [71,48,52,44,82,88,65],
+    pacingLY:  [78,65,72,70,90,95,80],
+    pacingLabels: ['Mon 17','Tue 18','Wed 19','Thu 20','Fri 21','Sat 22','Sun 23'],
+  },
+};
+
+let currentPeriod = 'week';
+
+// ══════════════════════════════════════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════════════════════════════════════
+const OCC_COLOR   = '#F26419';
+const OCC_LY_COLOR= '#DBEAFE';
+const OCC_LY_BORDER='#3B82F6';
+
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
+Chart.defaults.color = '#888';
+
+let occChart, pacingChart;
+
+function buildOccChart(d) {
+  const ctx = document.getElementById('occChart').getContext('2d');
+  if (occChart) occChart.destroy();
+  occChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: d.occLabels,
+      datasets: [
+        {
+          label: 'This year',
+          data: d.occDays,
+          backgroundColor: d.occDays.map((v,i) => {
+            // Highlight Tuesday (index 1 in week view)
+            if (currentPeriod === 'week' && i === 1) return '#FDBA74';
+            return OCC_COLOR;
+          }),
+          borderRadius: 5, borderSkipped: false,
+        },
+        {
+          label: 'Last year',
+          data: d.occLY,
+          backgroundColor: OCC_LY_COLOR,
+          borderColor: OCC_LY_BORDER,
+          borderWidth: 1.5,
+          borderRadius: 5, borderSkipped: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}%`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          min: 0, max: 110,
+          grid: { color: '#F0EDE9' },
+          border: { display: false, dash: [4,4] },
+          ticks: { callback: v => v + '%', font: { size: 11 }, maxTicksLimit: 5 },
+        }
+      },
+      animation: { duration: 600, easing: 'easeOutQuart' },
+    }
+  });
+}
+
+function buildPacingChart(d) {
+  const ctx = document.getElementById('pacingChart').getContext('2d');
+  if (pacingChart) pacingChart.destroy();
+  pacingChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: d.pacingLabels,
+      datasets: [
+        {
+          label: 'Current',
+          data: d.pacing,
+          backgroundColor: d.pacing.map((v,i) => v >= d.pacingLY[i] ? OCC_COLOR : '#FCA97A'),
+          borderRadius: 5, borderSkipped: false,
+        },
+        {
+          label: 'Last year',
+          data: d.pacingLY,
+          backgroundColor: OCC_LY_COLOR,
+          borderColor: OCC_LY_BORDER,
+          borderWidth: 1.5,
+          borderRadius: 5, borderSkipped: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}%` } }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          min: 0, max: 110,
+          grid: { color: '#F0EDE9' }, border: { display: false },
+          ticks: { callback: v => v + '%', font: { size: 11 }, maxTicksLimit: 5 }
+        }
+      },
+      animation: { duration: 600, easing: 'easeOutQuart' },
+    }
+  });
+}
+
+function updateKPIs(d) {
+  const fields = ['occ','rev','adr','revpar'];
+  const ids    = ['kpi-occ','kpi-rev','kpi-adr','kpi-revpar'];
+  fields.forEach((f, i) => {
+    const el = document.getElementById(ids[i]);
+    el.textContent = d[f].val;
+    const parent = el.parentElement;
+    const deltaEl = parent.querySelector('.kpi-delta');
+    deltaEl.textContent = (d[f].pos ? '▲ ' : '▼ ') + d[f].delta;
+    deltaEl.className = 'kpi-delta ' + (d[f].pos ? 'pos' : 'neg');
+    parent.querySelector('.kpi-budget').textContent = d[f].budget;
+  });
+}
+
+function setPeriod(btn, period) {
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPeriod = period;
+  const d = DATA[period];
+  updateKPIs(d);
+  buildOccChart(d);
+  buildPacingChart(d);
+}
+
+// Init
+buildOccChart(DATA.week);
+buildPacingChart(DATA.week);
+
+// ══════════════════════════════════════════════════════════════════════════
+// IVY CHAT
+// ══════════════════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────────────────
+// TO WIRE UP REAL AI:
+//
+// Replace simulateResponse() below with a real API call:
+//
+//   async function getAIResponse(userMessage) {
+//     const res = await fetch('https://api.anthropic.com/v1/messages', {
+//       method: 'POST',
+//       headers: {
+//         'x-api-key': YOUR_API_KEY,
+//         'anthropic-version': '2023-06-01',
+//         'content-type': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         model: 'claude-opus-4-5-20251101',
+//         max_tokens: 1024,
+//         system: SYSTEM_PROMPT,  // Give Claude the hotel context
+//         messages: conversationHistory,
+//       }),
+//     });
+//     const data = await res.json();
+//     return data.content[0].text;
+//   }
+//
+// The conversationHistory array below tracks the full thread
+// and can be passed directly as the messages array.
+// ─────────────────────────────────────────────────────────────────────────
+
+const conversationHistory = [
+  { role: 'user', content: 'Why was Tuesday so quiet?' },
+];
+
+const RESPONSES = {
+  'tuesday':    "Tuesday 11th hit only <strong>61% occupancy</strong> — 9% below last year. Your Booking.com rate was £12 above comparable nearby properties, and your Harrison Construction account had no bookings all week (unusual for them). They account for ~18% of your midweek revenue. Worth a quick call.",
+  'quiet':      "Tuesday 11th was the quiet day — 61% occupancy versus your 78% average for the rest of the week. The likely culprits: a higher OTA rate than competitors and a missing corporate account. Both are fixable.",
+  'weekend':    "Friday and Saturday were exceptional — 96% and 99% occupancy respectively. Valentine's Day demand drove a £132 ADR on Saturday, your highest rate in three months. Direct bookings were up 28% versus last year, suggesting your December rate adjustment is working.",
+  'valentine':  "Valentine's weekend drove Friday/Saturday to near-full capacity with ADR of £126 and £132. Direct bookings contributed most of the gain — your direct share was 28% this week, up from 21% the same week last year.",
+  'channel':    "Your <strong>best-performing channel this week</strong> was Direct with 56 rooms at £115 average rate — up 18% year-on-year. That's your highest-rate channel and growing. Booking.com followed with 52 rooms at £110. Expedia is the only channel in decline, down 3% on last year.",
+  'direct':     "Direct bookings hit 28% of total room nights this week — up from 21% the same week last year. This is your highest-rate channel at £115 ADR. The December rate adjustment appears to be driving guests towards the direct channel. Worth continuing.",
+  'thursday':   "Next Thursday 19 Feb has 14 rooms unbooked. Pickup is running slow — below your typical pattern at this point in the week. Your OTA rate for that date is currently £12 above the local market average. A short-term rate nudge could help close the gap before the window tightens.",
+  'pacing':     "Next week is mixed. The weekend (Fri–Sat) looks strong at 82–88% — broadly on track with last year. The concern is midweek: Tue–Thu are all tracking below last year, with Thursday the most exposed at 44% current pace versus 70% at this point last year.",
+  'fix':        "To improve Thursday's pacing, two actions are worth considering: first, check your OTA rate versus the market (currently £12 above average). Second, reach out to Harrison Construction — they're overdue for their typical midweek block and a proactive offer could bring them in.",
+  'harrison':   "Harrison Construction is one of your most reliable corporate accounts. Over the last 3 months they've booked 47 room nights (mostly Tue–Thu, 1–2 night stays) at an average rate of £94. Their last booking was 28 January. No activity in February so far, which is unusual. Based on past pattern, you'd expect 12–15 room nights from them this month.",
+  'monthly':    "February is shaping up to be your strongest month since last summer. You're currently at £74,880 revenue — up 9% on February last year — with 11 days still to go. Occupancy for the month to date is 79%, up 4 percentage points. The main opportunity remaining is shoring up the midweek position in the second half of the month.",
+  'summary':    "Week of 10–16 Feb: <strong>84% occupancy</strong>, <strong>£18,240 revenue</strong> (+11% YoY), <strong>£108 ADR</strong> (+4%), <strong>£91 RevPAR</strong> (+12%). Best performer: Saturday at 99% and £132 ADR. Weakest: Tuesday at 61%. Direct bookings hit 28% share — a new high.",
+  'adr':        "ADR held at £108 for the week — up 4% on last year. Saturday set the high at £132 (Valentine's pricing). Tuesday and Monday were both at £96, which is your floor rate. There's room to push midweek ADR further, particularly once occupancy is more secure.",
+  'revpar':     "RevPAR came in at £91 — up 12% year-on-year. The improvement is driven roughly equally by rate (ADR +4%) and occupancy (+6pp). Tuesday dragged the average down slightly; without it RevPAR would have been closer to £97.",
+};
+
+function matchResponse(msg) {
+  const m = msg.toLowerCase();
+  if (m.includes('tuesday') || m.includes('tue'))        return RESPONSES.tuesday;
+  if (m.includes('quiet') || m.includes('slow'))         return RESPONSES.quiet;
+  if (m.includes("valentine") || m.includes("weekend"))  return RESPONSES.weekend;
+  if (m.includes('channel') || m.includes('best') || m.includes('source')) return RESPONSES.channel;
+  if (m.includes('direct'))                               return RESPONSES.direct;
+  if (m.includes('thursday') || m.includes('thu') || m.includes('thin')) return RESPONSES.thursday;
+  if (m.includes('pacing') || m.includes('next week'))   return RESPONSES.pacing;
+  if (m.includes('fix') || m.includes('improve') || m.includes('help')) return RESPONSES.fix;
+  if (m.includes('harrison') || m.includes('corporate')) return RESPONSES.harrison;
+  if (m.includes('month') || m.includes('february'))     return RESPONSES.monthly;
+  if (m.includes('summary') || m.includes('overview'))   return RESPONSES.summary;
+  if (m.includes('adr') || m.includes('rate'))           return RESPONSES.adr;
+  if (m.includes('revpar'))                               return RESPONSES.revpar;
+  return "Great question. Based on your current data, I can see that last week performed above target overall — with the exception of Tuesday midweek. Would you like me to dig into a specific day, channel, or metric in more detail?";
+}
+
+function addMessage(html, role, time) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  if (role === 'ivy') {
+    div.innerHTML = `
+      <div class="msg-avatar ivy-sm">I</div>
+      <div>
+        <div class="msg-bubble">${html}</div>
+        <div class="msg-time">${time}</div>
+      </div>`;
+  } else {
+    div.innerHTML = `
+      <div>
+        <div class="msg-bubble">${html}</div>
+        <div class="msg-time">${time}</div>
+      </div>`;
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ivy';
+  div.id = 'typing';
+  div.innerHTML = `
+    <div class="msg-avatar ivy-sm">I</div>
+    <div class="typing-indicator">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+function now() {
+  return new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+}
+
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  addMessage(text, 'user', now());
+  input.value = '';
+  input.style.height = '';
+
+  // Hide suggestions after first real interaction
+  document.getElementById('suggestions').style.display = 'none';
+
+  showTyping();
+
+  // Simulate network delay
+  const delay = 900 + Math.random() * 600;
+  setTimeout(() => {
+    removeTyping();
+    const response = matchResponse(text);
+    addMessage(response, 'ivy', now());
+  }, delay);
+}
+
+function askSuggestion(el) {
+  const input = document.getElementById('chatInput');
+  input.value = el.textContent;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = '';
+  el.style.height = Math.min(el.scrollHeight, 90) + 'px';
+}
+</script>
+</body>
+</html>

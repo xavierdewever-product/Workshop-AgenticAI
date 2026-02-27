@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditable, not just Agentic — Delphine</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: #F5F3F0;
+  color: #1A1A1A;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.page-header {
+  background: #fff;
+  border-bottom: 1px solid #E8E4DF;
+  padding: 32px 40px 28px;
+}
+.header-label {
+  font-size: 11px; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; color: #F26419; margin-bottom: 10px;
+}
+.header-title {
+  font-size: 26px; font-weight: 800; line-height: 1.25;
+  color: #1A1A1A; max-width: 760px;
+  letter-spacing: -.02em;
+}
+.header-title em { font-style: normal; color: #F26419; }
+.header-meta {
+  margin-top: 12px; font-size: 12.5px; color: #888;
+  display: flex; align-items: center; gap: 16px;
+}
+.author-chip {
+  display: flex; align-items: center; gap: 7px;
+}
+.author-avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #7C3AED; color: #fff;
+  font-size: 9px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Grid ── */
+.frames-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 28px 32px 48px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) { .frames-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 580px) { .frames-grid { grid-template-columns: 1fr; } }
+
+/* ── Frame card ── */
+.frame-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #E8E4DF;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: box-shadow .2s, transform .2s;
+}
+.frame-card:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,.12);
+  transform: translateY(-2px);
+}
+
+.frame-top {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #F2EDE8;
+}
+.frame-number {
+  font-size: 10px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: #AAA; margin-bottom: 6px;
+}
+.frame-name {
+  font-size: 13px; font-weight: 700; color: #555;
+  margin-bottom: 10px;
+}
+.frame-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10.5px; font-weight: 700;
+  padding: 3px 11px; border-radius: 20px;
+  letter-spacing: .02em;
+}
+
+/* Pill colour variants */
+.pill-trust       { background: #EDE9FE; color: #6D28D9; }
+.pill-reporting   { background: #FEE2E2; color: #B91C1C; }
+.pill-mobile      { background: #D1FAE5; color: #065F46; }
+.pill-push        { background: #DBEAFE; color: #1D4ED8; }
+.pill-personal    { background: #FCE7F3; color: #9D174D; }
+.pill-crisis      { background: #FEE2E2; color: #991B1B; }
+
+.frame-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+.frame-headline {
+  font-size: 15.5px; font-weight: 800; line-height: 1.3;
+  color: #1A1A1A; letter-spacing: -.01em;
+}
+
+.frame-scene {
+  background: #FAFAF8;
+  border-radius: 8px;
+  border: 1px solid #EDE8E3;
+  padding: 12px 14px;
+  font-size: 12px; line-height: 1.6; color: #444;
+}
+.scene-label {
+  font-size: 10px; font-weight: 800; letter-spacing: .07em;
+  text-transform: uppercase; color: #F26419;
+  margin-bottom: 6px;
+}
+
+.frame-description {
+  font-size: 12.5px; line-height: 1.65; color: #555;
+}
+
+.frame-quote {
+  background: #FEF6EE;
+  border-left: 3px solid #F26419;
+  border-radius: 0 8px 8px 0;
+  padding: 10px 13px;
+  font-size: 12px; font-style: italic; line-height: 1.6; color: #5A3A1A;
+}
+.quote-label {
+  font-size: 10px; font-weight: 800; letter-spacing: .07em;
+  text-transform: uppercase; color: #F26419;
+  font-style: normal; display: block; margin-bottom: 4px;
+}
+
+/* ── Insight banner ── */
+.insight-banner {
+  max-width: 1280px; margin: 0 auto 0;
+  padding: 0 32px;
+}
+.insight-inner {
+  background: #F26419;
+  border-radius: 14px;
+  padding: 22px 28px;
+  display: flex; align-items: center; gap: 20px;
+}
+.insight-icon { font-size: 28px; flex-shrink: 0; }
+.insight-text { color: #fff; }
+.insight-text strong {
+  display: block; font-size: 15px; font-weight: 800;
+  margin-bottom: 4px; letter-spacing: -.01em;
+}
+.insight-text p { font-size: 12.5px; opacity: .9; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="page-header">
+  <div class="header-label">Product Vision — Workshop Submission</div>
+  <h1 class="header-title">
+    To win over GMs, your software shouldn't just be "Agentic" —<br>
+    it should be <em>"Auditable."</em>
+  </h1>
+  <div class="header-meta">
+    <div class="author-chip">
+      <div class="author-avatar">D</div>
+      <span>Delphine</span>
+    </div>
+    <span>·</span>
+    <span>6 frames</span>
+    <span>·</span>
+    <span>February 2026</span>
+  </div>
+</div>
+
+<!-- Insight banner -->
+<div class="insight-banner" style="padding-top: 28px;">
+  <div class="insight-inner">
+    <div class="insight-icon">💡</div>
+    <div class="insight-text">
+      <strong>The Real Differentiator: We understand sometimes everyone needs to pause, reflect and go back.</strong>
+      <p>The Performance Agent isn't just about doing more — it's about doing the right things, with full transparency and control at every step.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 6 Frames -->
+<div class="frames-grid">
+
+  <!-- Frame 1 -->
+  <div class="frame-card">
+    <div class="frame-top">
+      <div class="frame-number">Frame 1</div>
+      <div class="frame-name">Auditable, not just Agentic</div>
+      <span class="frame-pill pill-trust">✦ Trust</span>
+    </div>
+    <div class="frame-body">
+      <div class="frame-headline">Your agent explains itself.<br>Every time.</div>
+      <div class="frame-scene">
+        <div class="scene-label">📍 Scene</div>
+        GM on the go — mobile view. GM opens the Action Detail screen for a rate change made at 2am. She sees the full decision trail: demand spike detected → comp set checked → rate increased €155 → booking confirmed 4 min later.
+      </div>
+      <div class="frame-description">
+        GMs don't just want automation — they want to be able to stand behind every decision. The agent doesn't just act, it leaves a complete audit trail. Ask it anything, replay any decision, export the logic for your owner meeting.
+      </div>
+      <div class="frame-quote">
+        <span class="quote-label">GM Quote</span>
+        "Why did we sell the Penthouse for €200 last night?" — Agent replays the full logic in the chat, in plain English.
+      </div>
+    </div>
+  </div>
+
+  <!-- Frame 2 -->
+  <div class="frame-card">
+    <div class="frame-top">
+      <div class="frame-number">Frame 2</div>
+      <div class="frame-name">Report on Strategy, not just Performance</div>
+      <span class="frame-pill pill-reporting">📊 Reporting</span>
+    </div>
+    <div class="frame-body">
+      <div class="frame-headline">Numbers tell what happened.<br>Strategy explains why.</div>
+      <div class="frame-scene">
+        <div class="scene-label">📍 Scene</div>
+        GM is in an owner meeting in Zoho. GM opens the Owner Report — it shows the strategies taken this week: "ADR up 12% because comp set checked daily, which drove bookings from the leisure segment 4 and drove the strategy decision to show better results and improve the experience."
+      </div>
+      <div class="frame-description">
+        Traditional PMS reports show revenue and occupancy. The Performance Agent reports on decisions — what was done, why, and what it produced. Your owner gets context, not just charts.
+      </div>
+      <div class="frame-quote">
+        <span class="quote-label">GM Quote</span>
+        "Finally a report I can present to my owner without spending Sunday afternoon on it."
+      </div>
+    </div>
+  </div>
+
+  <!-- Frame 3 -->
+  <div class="frame-card">
+    <div class="frame-top">
+      <div class="frame-number">Frame 3</div>
+      <div class="frame-name">Mobile = the Key Win for Indies</div>
+      <span class="frame-pill pill-mobile">📱 Mobile First</span>
+    </div>
+    <div class="frame-body">
+      <div class="frame-headline">Run your hotel from your phone.<br>Seriously.</div>
+      <div class="frame-scene">
+        <div class="scene-label">📍 Scene</div>
+        Five-star hotel, multi-duty agent stories. Notifications arrive: "Agente — overnight summary — €41,459 generated, 5 actions taken, 2 decisions waiting for you." GM swipes — lands directly on the Agent Feed with the 2 pending decisions at the top.
+      </div>
+      <div class="frame-description">
+        Independent hoteliers are never at their desk. They're at the front desk, in the kitchen, with a guest. The Performance Agent pushes the right information to their phone — no login, no dashboard hunting. The key decisions surface automatically.
+      </div>
+      <div class="frame-quote">
+        <span class="quote-label">GM Quote</span>
+        "I approved a rate change from the school pickup line. That's what I needed."
+      </div>
+    </div>
+  </div>
+
+  <!-- Frame 4 -->
+  <div class="frame-card">
+    <div class="frame-top">
+      <div class="frame-number">Frame 4</div>
+      <div class="frame-name">Information Pushed, Not Pulled</div>
+      <span class="frame-pill pill-push">⚡ Push Intelligence</span>
+    </div>
+    <div class="frame-body">
+      <div class="frame-headline">The right information finds you.<br>Not the other way around.</div>
+      <div class="frame-scene">
+        <div class="scene-label">📍 Scene</div>
+        Mobile lock screen, 7:14am. Phone notification: "Agent overnight summary — €41,459 generated, 5 actions taken, 2 decisions waiting for you." GM swipes — lands directly on the Agent Feed with the 2 pending decisions at the top.
+      </div>
+      <div class="frame-description">
+        Most hotel software requires GMs to log in and go looking. The Performance Agent inverts this. It knows what's urgent, what's informational, and what can stay invisible. Your attention is protected, not overwhelmed.
+      </div>
+      <div class="frame-quote">
+        <span class="quote-label">GM Quote</span>
+        "I used to start every morning checking 4 systems. Now I check one notification."
+      </div>
+    </div>
+  </div>
+
+  <!-- Frame 5 -->
+  <div class="frame-card">
+    <div class="frame-top">
+      <div class="frame-number">Frame 5</div>
+      <div class="frame-name">Radically Personalised Reporting</div>
+      <span class="frame-pill pill-personal">✦ Personalisation</span>
+    </div>
+    <div class="frame-body">
+      <div class="frame-headline">Your dashboard. Your language.<br>Your metrics.</div>
+      <div class="frame-scene">
+        <div class="scene-label">📍 Scene</div>
+        Desktop dashboard. GM types in chat: "Show me RevPAR by channel for the last 30 days." A chart appears in chat. Below it: "Save to dashboard?" GM clicks Yes. The chart pins to dashboard. She drags it next to occupancy widget, removes the ADR card she never uses.
+      </div>
+      <div class="frame-description">
+        No two GMs run their hotel the same way. The Performance Agent adapts to how you think — not the other way around. Build the view that matches your brain, not the one a product manager designed for an average user.
+      </div>
+      <div class="frame-quote">
+        <span class="quote-label">GM Quote</span>
+        "I moved the RevPAR widget next to comp set. Took 3 seconds. Never going back."
+      </div>
+    </div>
+  </div>
+
+  <!-- Frame 6 -->
+  <div class="frame-card">
+    <div class="frame-top">
+      <div class="frame-number">Frame 6</div>
+      <div class="frame-name">The Kill Switch</div>
+      <span class="frame-pill pill-crisis">🚨 Crisis Control</span>
+    </div>
+    <div class="frame-body">
+      <div class="frame-headline">You're always in control.<br>One button, zero doubt.</div>
+      <div class="frame-scene">
+        <div class="scene-label">📍 Scene</div>
+        Fire alarm going off at the hotel, the front-desk manager has just handed in their resignation, and the owner is talking about reflagging the 3rd floor and they just announced Taylor Swift concert in 2 minutes. GM feels overwhelmed.
+      </div>
+      <div class="frame-description">
+        Agentic software that can't be stopped is a liability. The Kill Switch gives GMs total confidence: the moment something feels wrong — an error, a system error, a gut feeling — they can freeze all autonomous actions instantly, across mobile and desktop, with a single deliberate gesture.
+      </div>
+      <div class="frame-quote">
+        <span class="quote-label">GM Quote</span>
+        "During our fire alarm last month, I paused the agent in 2 seconds. No rate changes while the hotel was in chaos. That's what trust looks like."
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
